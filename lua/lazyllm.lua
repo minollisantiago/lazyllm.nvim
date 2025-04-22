@@ -294,7 +294,7 @@ end
 
 --------- EXPERIMENTING WITH TELESCOPE AND LSP ==> SELECTION FUNCTIONS -------
 
-function M.get_symbol_list()
+function M.get_symbol_list_old()
 	local params = { textDocument = vim.lsp.util.make_text_document_params() }
 	local resp = vim.lsp.buf_request_sync(0, "textDocument/documentSymbol", params, 300)
 	if not resp or vim.tbl_isempty(resp) then
@@ -327,7 +327,53 @@ function M.get_symbol_list()
 	return out
 end
 
-function M.select_symbol_and_get_text()
+function M.get_symbol_list()
+	local out = {}
+
+	-- Loop through all loaded buffers
+	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+		if not vim.api.nvim_buf_is_loaded(bufnr) then
+			goto continue
+		end
+
+		local clients = vim.lsp.get_clients({ bufnr = bufnr })
+		if #clients == 0 then
+			goto continue
+		end
+
+		local params = vim.lsp.util.make_text_document_params(bufnr)
+		local resp = vim.lsp.buf_request_sync(bufnr, "textDocument/documentSymbol", params, 300)
+
+		if resp then
+			for _, res in pairs(resp) do
+				local function flatten(symbols)
+					for _, s in ipairs(symbols) do
+						if s.kind == 12 or s.kind == 5 or s.kind == 6 then -- Function, Class, Method
+							table.insert(out, {
+								name = s.name,
+								range = s.range,
+								kind = vim.lsp.protocol.SymbolKind[s.kind],
+								bufnr = bufnr,
+							})
+						end
+						if s.children then
+							flatten(s.children)
+						end
+					end
+				end
+				if res.result then
+					flatten(res.result)
+				end
+			end
+		end
+
+		::continue::
+	end
+
+	return out
+end
+
+function M.select_symbol_and_get_text_old()
 	local pickers = require("telescope.pickers")
 	local finders = require("telescope.finders")
 	local actions = require("telescope.actions")
@@ -341,7 +387,7 @@ function M.select_symbol_and_get_text()
 
 	pickers
 		.new({}, {
-			prompt_title = "Select a symbol",
+			prompt_title = "Select a symbol to add to context",
 			finder = finders.new_table({
 				results = symbols,
 				entry_maker = function(entry)
@@ -369,8 +415,53 @@ function M.select_symbol_and_get_text()
 			end,
 		})
 		:find()
-	--vim.keymap.set("n", "<leader>ls", M.select_symbol_and_get_text, { desc = "LLM on symbol" })
 end
+
+function M.select_symbol_and_get_text()
+	local pickers = require("telescope.pickers")
+	local finders = require("telescope.finders")
+	local actions = require("telescope.actions")
+	local action_state = require("telescope.actions.state")
+
+	local symbols = M.get_symbol_list()
+	if vim.tbl_isempty(symbols) then
+		vim.notify("No symbols available", vim.log.levels.WARN)
+		return
+	end
+
+	pickers
+		.new({}, {
+			prompt_title = "Select a symbol to add to context",
+			finder = finders.new_table({
+				results = symbols,
+				entry_maker = function(entry)
+					local filename = vim.api.nvim_buf_get_name(entry.bufnr)
+					filename = vim.fn.fnamemodify(filename, ":t")
+					return {
+						value = entry,
+						display = string.format("%-20s [%s] - %s", entry.name, entry.kind, filename),
+						ordinal = entry.name .. " " .. filename,
+					}
+				end,
+			}),
+			sorter = require("telescope.config").values.generic_sorter({}),
+			attach_mappings = function(prompt_bufnr)
+				actions.select_default:replace(function()
+					actions.close(prompt_bufnr)
+					local selection = action_state.get_selected_entry().value
+					local bufnr = selection.bufnr
+					local start_row = selection.range.start.line
+					local end_row = selection.range["end"].line
+					local lines = vim.api.nvim_buf_get_lines(bufnr, start_row, end_row + 1, false)
+					local symbolText = table.concat(lines, "\n")
+					print("Here is the selected function: " .. symbolText)
+				end)
+				return true
+			end,
+		})
+		:find()
+end
+
 ------------------------------------------------------------------------------
 
 return M
