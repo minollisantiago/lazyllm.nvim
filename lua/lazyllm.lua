@@ -369,7 +369,7 @@ function M.select_symbol_and_get_text()
 			end,
 		})
 		:find()
-	vim.keymap.set("n", "<leader>ls", M.select_symbol_and_get_text, { desc = "LLM on symbol" })
+	--vim.keymap.set("n", "<leader>ls", M.select_symbol_and_get_text, { desc = "LLM on symbol" })
 end
 ------------------------------------------------------------------------------
 
