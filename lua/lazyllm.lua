@@ -244,21 +244,15 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 	local function parse_and_call(line)
 		print("Raw line recieved: ", line)
 		local event = line:match("^event: (.+)$")
+
 		if event then
 			curr_event_state = event
 			return
 		end
 
 		local data_match = line:match("^data: (.+)$")
-
-		-- Anthropic & OpenAi
 		if data_match then
 			handle_data_fn(data_match, curr_event_state)
-
-		-- Gemini
-		elseif handle_data_fn == M.handle_gemini_spec_data then
-			print("Passing raw line to Gemini handler: ", line)
-			handle_data_fn(line)
 		end
 	end
 
