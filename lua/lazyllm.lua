@@ -233,23 +233,13 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 	local args = make_curl_args_fn(opts, prompt, system_prompt)
 	local curr_event_state = nil
 
-	-- *** START DEBUGGING PRINT ***
-	print("--- LazyLLM Debug ---")
-	print("Command: curl")
-	print("Arguments:")
-	print(vim.inspect(args))
-	-- *** END DEBUGGING PRINT ***
-
 	-- parse SSE lines as they come in:
 	local function parse_and_call(line)
-		print("Raw line recieved: ", line)
 		local event = line:match("^event: (.+)$")
-
 		if event then
 			curr_event_state = event
 			return
 		end
-
 		local data_match = line:match("^data: (.+)$")
 		if data_match then
 			handle_data_fn(data_match, curr_event_state)
@@ -267,6 +257,9 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 		command = "curl",
 		args = args,
 		on_stdout = function(_, out)
+			vim.schedule(function()
+				print("Parsing LLM response...")
+			end)
 			parse_and_call(out)
 		end,
 		on_stderr = function(_, _) end,
