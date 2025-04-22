@@ -341,6 +341,8 @@ function M.select_symbol_and_get_text()
 	local action_state = require("telescope.actions.state")
 	local previewers = require("telescope.previewers")
 	local conf = require("telescope.config").values
+	local entry_display = require("telescope.pickers.entry_display")
+	local devicons = require("nvim-web-devicons")
 
 	-- Get loaded buffers symbols
 	local symbols = M.get_symbol_list()
@@ -349,24 +351,48 @@ function M.select_symbol_and_get_text()
 		return
 	end
 
+	local make_entry = function(entry)
+		local filename = vim.api.nvim_buf_get_name(entry.bufnr)
+		local shortname = vim.fn.fnamemodify(filename, ":t")
+		local ext = vim.fn.fnamemodify(filename, ":e")
+		local icon, iconhl = devicons.get_icon(shortname, ext, { default = true })
+
+		local displayer = entry_display.create({
+			separator = " ",
+			items = {
+				{ width = 2 }, -- icon
+				{ width = 25 }, -- symbol name
+				{ width = 12 }, -- kind
+				{ remaining = true }, -- file name
+			},
+		})
+
+		local display = function()
+			return displayer({
+				{ icon, iconhl },
+				entry.name,
+				"[" .. entry.kind .. "]",
+				shortname,
+			})
+		end
+
+		return {
+			value = entry,
+			display = display,
+			ordinal = entry.name .. " " .. shortname,
+			filename = shortname,
+			bufnr = entry.bufnr,
+			start_row = entry.range.start.line,
+			end_row = entry.range["end"].line,
+		}
+	end
+
 	pickers
 		.new({}, {
 			prompt_title = "Select a symbol to add to context",
 			finder = finders.new_table({
 				results = symbols,
-				entry_maker = function(entry)
-					local filename = vim.api.nvim_buf_get_name(entry.bufnr)
-					filename = vim.fn.fnamemodify(filename, ":t")
-					return {
-						value = entry,
-						display = string.format("%-20s [%s] - %s", entry.name, entry.kind, filename),
-						ordinal = entry.name .. " " .. filename,
-						filename = filename,
-						bufnr = entry.bufnr,
-						start_row = entry.range.start.line,
-						end_row = entry.range["end"].line,
-					}
-				end,
+				entry_maker = make_entry,
 			}),
 			sorter = conf.generic_sorter({}),
 			previewer = previewers.new_buffer_previewer({
