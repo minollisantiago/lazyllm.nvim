@@ -1,11 +1,27 @@
 local M = {}
 
-local ts_utils = require("nvim-treesitter.ts_utils")
 local parsers = require("nvim-treesitter.parsers")
 
+-- default LSP SymbolKinds
+local default_allowed_kinds = {
+	[5] = "Class",
+	[6] = "Method",
+	[12] = "Function",
+	[13] = "Variable", -- const, let, etc.
+	[11] = "Interface", -- interface Foo {}
+	[25] = "TypeParameter", -- type Foo = ...
+}
+
 -- LSP-based symbol lookup
-function M.get_symbol_list()
+function M.get_symbol_list(allowed_kinds)
 	local out = {}
+	local allowed_kinds_ = {}
+
+	if not allowed_kinds then
+		allowed_kinds_ = default_allowed_kinds
+	else
+		allowed_kinds_ = allowed_kinds
+	end
 
 	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
 		if vim.api.nvim_buf_is_loaded(bufnr) and vim.bo[bufnr].buftype == "" then
@@ -18,7 +34,7 @@ function M.get_symbol_list()
 						if res.result then
 							local function flatten(symbols)
 								for _, s in ipairs(symbols) do
-									if s.kind == 12 or s.kind == 5 or s.kind == 6 then -- Function, Class, Method
+									if allowed_kinds_[s.kind] then
 										table.insert(out, {
 											name = s.name,
 											range = s.range,
@@ -143,6 +159,7 @@ function M.get_symbol_list_treesitter()
 
 	return out
 end
+
 -- Telescope picker
 function M.select_symbol_and_get_text(symbol_lookup_fn)
 	local pickers = require("telescope.pickers")
