@@ -286,7 +286,90 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 		end,
 	})
 
+	--------- EXPERIMENTING WITH TELESCOPE AND LSP ==> SELECTION FUNCTIONS -------
+
+	-- 1) Get a flat list of symbols from LSP
+	function M.get_symbol_list()
+		local params = { textDocument = vim.lsp.util.make_text_document_params() }
+		local resp = vim.lsp.buf_request_sync(0, "textDocument/documentSymbol", params, 300)
+		if not resp or vim.tbl_isempty(resp) then
+			return {}
+		end
+
+		local out = {}
+		local function flatten(symbols)
+			for _, s in ipairs(symbols) do
+				-- skip non‑functions if you like: check s.kind == 12 (Function)
+				table.insert(out, {
+					name = s.name,
+					range = s.range,
+					kind = vim.lsp.protocol.SymbolKind[s.kind],
+				})
+				if s.children then
+					flatten(s.children)
+				end
+			end
+		end
+
+		for _, res in pairs(resp) do
+			if res.result then
+				flatten(res.result)
+			end
+		end
+
+		return out
+	end
+
+	-- 2) Prompt via Telescope and grab the selected symbol’s lines
+	function M.select_symbol_and_get_text()
+		local pickers = require("telescope.pickers")
+		local finders = require("telescope.finders")
+		local actions = require("telescope.actions")
+		local action_state = require("telescope.actions.state")
+
+		local symbols = M.get_symbol_list()
+		if vim.tbl_isempty(symbols) then
+			vim.notify("No symbols available", vim.log.levels.WARN)
+			return
+		end
+
+		pickers
+			.new({}, {
+				prompt_title = "Select a symbol",
+				finder = finders.new_table({
+					results = symbols,
+					entry_maker = function(entry)
+						return {
+							value = entry,
+							display = string.format("%-20s [%s]", entry.name, entry.kind),
+							ordinal = entry.name,
+						}
+					end,
+				}),
+				sorter = require("telescope.config").values.generic_sorter({}),
+				attach_mappings = function(prompt_bufnr)
+					actions.select_default:replace(function()
+						actions.close(prompt_bufnr)
+						local selection = action_state.get_selected_entry().value
+						local bufnr = vim.api.nvim_get_current_buf()
+						-- extract lines by LSP 0‑based range: start.line .. end.line
+						local start_row = selection.range.start.line
+						local end_row = selection.range["end"].line
+						local lines = vim.api.nvim_buf_get_lines(bufnr, start_row, end_row + 1, false)
+						local symbolText = table.concat(lines, "\n")
+						print("Here is the selected function: " .. symbolText)
+					end)
+					return true
+				end,
+			})
+			:find()
+	end
+	------------------------------------------------------------------------------
+
+	-- Keymaps
 	vim.api.nvim_set_keymap("n", "<Esc>", ":doautocmd User LAZY_LLM_Escape<CR>", { noremap = true, silent = true })
+	vim.keymap.set("n", "<leader>ls", M.select_symbol_and_get_text, { desc = "LLM on symbol" })
+
 	return active_job
 end
 
