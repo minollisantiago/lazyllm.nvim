@@ -379,7 +379,7 @@ function M.select_symbol_and_get_text_old()
 	local actions = require("telescope.actions")
 	local action_state = require("telescope.actions.state")
 
-	local symbols = M.get_symbol_list()
+	local symbols = M.get_symbol_list_old()
 	if vim.tbl_isempty(symbols) then
 		vim.notify("No symbols available", vim.log.levels.WARN)
 		return
