@@ -330,46 +330,47 @@ end
 function M.get_symbol_list()
 	local out = {}
 
-	-- Loop through all loaded buffers
 	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-		if not vim.api.nvim_buf_is_loaded(bufnr) then
-			goto continue
-		end
-
-		local clients = vim.lsp.get_clients({ bufnr = bufnr })
-		if #clients == 0 then
-			goto continue
-		end
-
-		local params = vim.lsp.util.make_text_document_params(bufnr)
-		local resp = vim.lsp.buf_request_sync(bufnr, "textDocument/documentSymbol", params, 300)
-
-		if resp then
-			for _, res in pairs(resp) do
-				local function flatten(symbols)
-					for _, s in ipairs(symbols) do
-						if s.kind == 12 or s.kind == 5 or s.kind == 6 then -- Function, Class, Method
-							table.insert(out, {
-								name = s.name,
-								range = s.range,
-								kind = vim.lsp.protocol.SymbolKind[s.kind],
-								bufnr = bufnr,
-							})
-						end
-						if s.children then
-							flatten(s.children)
+		if vim.api.nvim_buf_is_loaded(bufnr) and vim.bo[bufnr].buftype == "" then
+			print("Checking buffer: " .. bufnr .. " -> " .. vim.api.nvim_buf_get_name(bufnr))
+			local clients = vim.lsp.get_clients({ bufnr = bufnr })
+			print("  LSP clients attached: " .. #clients)
+			if #clients > 0 then
+				local params = { textDocument = vim.lsp.util.make_text_document_params(bufnr) }
+				local resp = vim.lsp.buf_request_sync(bufnr, "textDocument/documentSymbol", params, 500)
+				if not resp then
+					print("  No response from LSP.")
+				else
+					for client_id, res in pairs(resp) do
+						print("  Response from client: " .. client_id)
+						if res.result then
+							local function flatten(symbols)
+								for _, s in ipairs(symbols) do
+									print("    Symbol: " .. s.name .. " (" .. s.kind .. ")")
+									if s.kind == 12 or s.kind == 5 or s.kind == 6 then -- Function, Class or Method
+										table.insert(out, {
+											name = s.name,
+											range = s.range,
+											kind = vim.lsp.protocol.SymbolKind[s.kind],
+											bufnr = bufnr,
+										})
+									end
+									if s.children then
+										flatten(s.children)
+									end
+								end
+							end
+							flatten(res.result)
+						else
+							print("    No result from LSP response.")
 						end
 					end
 				end
-				if res.result then
-					flatten(res.result)
-				end
 			end
 		end
-
-		::continue::
 	end
 
+	print("Total collected symbols: " .. #out)
 	return out
 end
 
