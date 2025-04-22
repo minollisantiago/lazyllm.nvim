@@ -102,7 +102,7 @@ end
 function M.make_gemini_spec_curl_args(opts, prompt, system_prompt)
 	-- Validate necessary options
 	if not opts.model then
-		error("opts.model (e.g., 'gemini-1.5-pro-latest') is required for the Gemini API URL")
+		error("opts.model (e.g., 'gemini-2.0-flash') is required for the Gemini API URL")
 		return nil
 	end
 	if not opts.api_key_name then
@@ -233,16 +233,32 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 	local args = make_curl_args_fn(opts, prompt, system_prompt)
 	local curr_event_state = nil
 
+	-- *** START DEBUGGING PRINT ***
+	print("--- LazyLLM Debug ---")
+	print("Command: curl")
+	print("Arguments:")
+	print(vim.inspect(args))
+	-- *** END DEBUGGING PRINT ***
+
 	-- parse SSE lines as they come in:
 	local function parse_and_call(line)
+		print("Raw line recieved: ", line)
 		local event = line:match("^event: (.+)$")
 		if event then
 			curr_event_state = event
 			return
 		end
+
 		local data_match = line:match("^data: (.+)$")
+
+		-- Anthropic & OpenAi
 		if data_match then
 			handle_data_fn(data_match, curr_event_state)
+
+		-- Gemini
+		elseif handle_data_fn == M.handle_gemini_spec_data then
+			print("Passing raw line to Gemini handler: ", line)
+			handle_data_fn(line)
 		end
 	end
 
@@ -260,7 +276,10 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 			parse_and_call(out)
 		end,
 		on_stderr = function(_, _) end,
-		on_exit = function()
+		on_exit = function(_, code, signal)
+			vim.schedule(function()
+				print("LLM job exited, Code:", code, "Signal:", signal)
+			end)
 			active_job = nil
 		end,
 	})
