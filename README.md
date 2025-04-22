@@ -1,5 +1,6 @@
 
-
+## LazyLLM
+My own (dirty and lazy) take on [Yacine's dingllm scripts](https://github.com/yacineMTB/dingllm.nvim)
 
 ### Lazy config
 Add your API keys to your env, here is an example with fish:
