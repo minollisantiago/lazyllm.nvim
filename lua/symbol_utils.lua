@@ -45,88 +45,38 @@ end
 
 -- Tree-sitter based symbol lookup (supports TS types/interfaces, arrow funcs, etc.)
 function M.get_symbol_list_treesitter()
-	local bufnr = vim.api.nvim_get_current_buf()
-	if not parsers.has_parser() then
-		return {}
-	end
+	local out = {}
 
-	local root = ts_utils.get_root_for_position(0, 0, bufnr)
-	if not root then
-		return {}
-	end
-
-	local symbols = {}
-
-	local function get_node_text(node)
-		return vim.treesitter.get_node_text(node, bufnr)
-	end
-
-	local function traverse(node)
-		for child in node:iter_children() do
-			local type = child:type()
-
-			-- const fn / arrow fn (React component / handlers)
-			if type == "lexical_declaration" then
-				local name_node = child:field("name")[1]
-				local value_node = child:field("value")[1]
-
-				if name_node and value_node then
-					local name = get_node_text(name_node)
-					local val_type = value_node:type()
-					if val_type == "arrow_function" or val_type == "function" then
-						table.insert(symbols, {
-							name = name,
-							kind = "Function",
-							bufnr = bufnr,
-							range = {
-								start = { line = child:start() },
-								["end"] = { line = child:end_() },
-							},
-						})
-					end
-				end
+	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(bufnr) and vim.bo[bufnr].buftype == "" then
+			local lang = parsers.get_buf_lang(bufnr)
+			local parser = vim.treesitter.get_parser(bufnr, lang)
+			if not parser then
+				goto continue
 			end
 
-			-- function MyFn() {}
-			if type == "function_declaration" then
-				local name_node = child:field("name")[1]
-				if name_node then
-					local name = get_node_text(name_node)
-					table.insert(symbols, {
-						name = name,
-						kind = "Function",
+			local tree = parser:parse()[1]
+			local root = tree:root()
+
+			-- Walk the tree and collect interesting nodes
+			ts_utils.for_each_tree_node(root, function(node)
+				local type = node:type()
+				if type == "function_declaration" or type == "variable_declaration" then
+					local start_row = node:range()
+					table.insert(out, {
+						name = type,
+						range = { start = { line = start_row } },
+						kind = "TS",
 						bufnr = bufnr,
-						range = {
-							start = { line = child:start() },
-							["end"] = { line = child:end_() },
-						},
 					})
 				end
-			end
+			end)
 
-			-- interface Foo {} or type Foo = ...
-			if type == "interface_declaration" or type == "type_alias_declaration" then
-				local name_node = child:field("name")[1]
-				if name_node then
-					local name = get_node_text(name_node)
-					table.insert(symbols, {
-						name = name,
-						kind = "Type",
-						bufnr = bufnr,
-						range = {
-							start = { line = child:start() },
-							["end"] = { line = child:end_() },
-						},
-					})
-				end
-			end
-
-			traverse(child)
+			::continue::
 		end
 	end
 
-	traverse(root)
-	return symbols
+	return out
 end
 
 -- Telescope picker
