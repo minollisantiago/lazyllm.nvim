@@ -130,7 +130,7 @@ function M.get_symbol_list_treesitter()
 end
 
 -- Telescope picker
-function M.select_symbol_and_get_text()
+function M.select_symbol_and_get_text(symbol_lookup_fn)
 	local pickers = require("telescope.pickers")
 	local finders = require("telescope.finders")
 	local actions = require("telescope.actions")
@@ -140,7 +140,7 @@ function M.select_symbol_and_get_text()
 	local entry_display = require("telescope.pickers.entry_display")
 	local devicons = require("nvim-web-devicons")
 
-	local symbols = M.get_symbol_list()
+	local symbols = symbol_lookup_fn()
 	if vim.tbl_isempty(symbols) then
 		vim.notify("No symbols available", vim.log.levels.WARN)
 		return
