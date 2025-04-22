@@ -306,11 +306,13 @@ function M.get_symbol_list()
 	local function flatten(symbols)
 		for _, s in ipairs(symbols) do
 			-- check s.kind == 12 (Functions), s.kind == 5 (classes)
-			table.insert(out, {
-				name = s.name,
-				range = s.range,
-				kind = vim.lsp.protocol.SymbolKind[s.kind],
-			})
+			if s.kind == 12 or s.kind == 5 then
+				table.insert(out, {
+					name = s.name,
+					range = s.range,
+					kind = vim.lsp.protocol.SymbolKind[s.kind],
+				})
+			end
 			if s.children then
 				flatten(s.children)
 			end
