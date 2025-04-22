@@ -117,7 +117,7 @@ function M.make_gemini_spec_curl_args(opts, prompt, system_prompt)
 	end
 
 	-- Construct the gemini API URL
-	local url = string.format("%sv1beta/models/%s:streamGenerateContent", opts.url, opts.model)
+	local url = string.format("%sv1beta/models/%s:streamGenerateContent?alt=sse", opts.url, opts.model)
 
 	-- Prompts
 	local data = {
