@@ -294,7 +294,6 @@ end
 
 --------- EXPERIMENTING WITH TELESCOPE AND LSP ==> SELECTION FUNCTIONS -------
 
--- 1) Get a flat list of symbols from LSP
 function M.get_symbol_list()
 	local params = { textDocument = vim.lsp.util.make_text_document_params() }
 	local resp = vim.lsp.buf_request_sync(0, "textDocument/documentSymbol", params, 300)
@@ -305,8 +304,8 @@ function M.get_symbol_list()
 	local out = {}
 	local function flatten(symbols)
 		for _, s in ipairs(symbols) do
-			-- check s.kind == 12 (Functions), s.kind == 5 (classes)
-			if s.kind == 12 or s.kind == 5 then
+			-- Filter for functions (12), classes (5) and methods (6)
+			if s.kind == 12 or s.kind == 5 or s.kind == 6 then
 				table.insert(out, {
 					name = s.name,
 					range = s.range,
@@ -328,7 +327,6 @@ function M.get_symbol_list()
 	return out
 end
 
--- 2) Prompt via Telescope and grab the selected symbol’s lines
 function M.select_symbol_and_get_text()
 	local pickers = require("telescope.pickers")
 	local finders = require("telescope.finders")
