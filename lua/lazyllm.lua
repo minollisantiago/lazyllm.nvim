@@ -294,59 +294,21 @@ end
 
 --------- EXPERIMENTING WITH TELESCOPE AND LSP ==> SELECTION FUNCTIONS -------
 
-function M.get_symbol_list_old()
-	local params = { textDocument = vim.lsp.util.make_text_document_params() }
-	local resp = vim.lsp.buf_request_sync(0, "textDocument/documentSymbol", params, 300)
-	if not resp or vim.tbl_isempty(resp) then
-		return {}
-	end
-
-	local out = {}
-	local function flatten(symbols)
-		for _, s in ipairs(symbols) do
-			-- Filter for functions (12), classes (5) and methods (6)
-			if s.kind == 12 or s.kind == 5 or s.kind == 6 then
-				table.insert(out, {
-					name = s.name,
-					range = s.range,
-					kind = vim.lsp.protocol.SymbolKind[s.kind],
-				})
-			end
-			if s.children then
-				flatten(s.children)
-			end
-		end
-	end
-
-	for _, res in pairs(resp) do
-		if res.result then
-			flatten(res.result)
-		end
-	end
-
-	return out
-end
-
 function M.get_symbol_list()
 	local out = {}
 
 	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
 		if vim.api.nvim_buf_is_loaded(bufnr) and vim.bo[bufnr].buftype == "" then
-			print("Checking buffer: " .. bufnr .. " -> " .. vim.api.nvim_buf_get_name(bufnr))
 			local clients = vim.lsp.get_clients({ bufnr = bufnr })
-			print("  LSP clients attached: " .. #clients)
 			if #clients > 0 then
 				local params = { textDocument = vim.lsp.util.make_text_document_params(bufnr) }
 				local resp = vim.lsp.buf_request_sync(bufnr, "textDocument/documentSymbol", params, 500)
 				if not resp then
-					print("  No response from LSP.")
 				else
 					for client_id, res in pairs(resp) do
-						print("  Response from client: " .. client_id)
 						if res.result then
 							local function flatten(symbols)
 								for _, s in ipairs(symbols) do
-									print("    Symbol: " .. s.name .. " (" .. s.kind .. ")")
 									if s.kind == 12 or s.kind == 5 or s.kind == 6 then -- Function, Class or Method
 										table.insert(out, {
 											name = s.name,
@@ -362,60 +324,14 @@ function M.get_symbol_list()
 							end
 							flatten(res.result)
 						else
-							print("    No result from LSP response.")
+							vim.notify("No result from LSP response.", vim.log.levels.WARN)
 						end
 					end
 				end
 			end
 		end
 	end
-
-	print("Total collected symbols: " .. #out)
 	return out
-end
-
-function M.select_symbol_and_get_text_old()
-	local pickers = require("telescope.pickers")
-	local finders = require("telescope.finders")
-	local actions = require("telescope.actions")
-	local action_state = require("telescope.actions.state")
-
-	local symbols = M.get_symbol_list_old()
-	if vim.tbl_isempty(symbols) then
-		vim.notify("No symbols available", vim.log.levels.WARN)
-		return
-	end
-
-	pickers
-		.new({}, {
-			prompt_title = "Select a symbol to add to context",
-			finder = finders.new_table({
-				results = symbols,
-				entry_maker = function(entry)
-					return {
-						value = entry,
-						display = string.format("%-20s [%s]", entry.name, entry.kind),
-						ordinal = entry.name,
-					}
-				end,
-			}),
-			sorter = require("telescope.config").values.generic_sorter({}),
-			attach_mappings = function(prompt_bufnr)
-				actions.select_default:replace(function()
-					actions.close(prompt_bufnr)
-					local selection = action_state.get_selected_entry().value
-					local bufnr = vim.api.nvim_get_current_buf()
-					-- extract lines by LSP 0‑based range: start.line .. end.line
-					local start_row = selection.range.start.line
-					local end_row = selection.range["end"].line
-					local lines = vim.api.nvim_buf_get_lines(bufnr, start_row, end_row + 1, false)
-					local symbolText = table.concat(lines, "\n")
-					print("Here is the selected function: " .. symbolText)
-				end)
-				return true
-			end,
-		})
-		:find()
 end
 
 function M.select_symbol_and_get_text()
@@ -423,7 +339,10 @@ function M.select_symbol_and_get_text()
 	local finders = require("telescope.finders")
 	local actions = require("telescope.actions")
 	local action_state = require("telescope.actions.state")
+	local previewers = require("telescope.previewers")
+	local conf = require("telescope.config").values
 
+	-- Get loaded buffers symbols
 	local symbols = M.get_symbol_list()
 	if vim.tbl_isempty(symbols) then
 		vim.notify("No symbols available", vim.log.levels.WARN)
@@ -442,10 +361,21 @@ function M.select_symbol_and_get_text()
 						value = entry,
 						display = string.format("%-20s [%s] - %s", entry.name, entry.kind, filename),
 						ordinal = entry.name .. " " .. filename,
+						filename = filename,
+						bufnr = entry.bufnr,
+						start_row = entry.range.start.line,
+						end_row = entry.range["end"].line,
 					}
 				end,
 			}),
-			sorter = require("telescope.config").values.generic_sorter({}),
+			sorter = conf.generic_sorter({}),
+			previewer = previewers.new_buffer_previewer({
+				define_preview = function(self, entry, _)
+					local lines = vim.api.nvim_buf_get_lines(entry.bufnr, entry.start_row, entry.end_row + 1, false)
+					vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+					vim.bo[self.state.bufnr].filetype = vim.bo[entry.bufnr].filetype
+				end,
+			}),
 			attach_mappings = function(prompt_bufnr)
 				actions.select_default:replace(function()
 					actions.close(prompt_bufnr)
