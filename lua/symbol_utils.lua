@@ -161,7 +161,7 @@ function M.get_symbol_list_treesitter()
 end
 
 -- Telescope picker
-function M.select_symbol_and_get_text(symbol_lookup_fn)
+function M.select_symbol_and_get_text(symbol_lookup_fn, handle_symbol_fn)
 	local pickers = require("telescope.pickers")
 	local finders = require("telescope.finders")
 	local actions = require("telescope.actions")
@@ -237,7 +237,11 @@ function M.select_symbol_and_get_text(symbol_lookup_fn)
 					local end_row = selection.range["end"].line
 					local lines = vim.api.nvim_buf_get_lines(bufnr, start_row, end_row + 1, false)
 					local symbolText = table.concat(lines, "\n")
-					print("Here is the selected function:\n\n" .. symbolText)
+					if handle_symbol_fn then
+						handle_symbol_fn(symbolText)
+					else
+						print("Here is the selected function:\n\n" .. symbolText)
+					end
 				end)
 				return true
 			end,
