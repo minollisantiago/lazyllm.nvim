@@ -30,11 +30,11 @@ end
 -- Format commits markdown
 function M.format_commits_markdown(commits)
 	local lines = {}
+	table.insert(lines, "| Date | Commit | Author | Message |")
+	table.insert(lines, "|------|--------|--------|---------|")
 	for _, c in ipairs(commits) do
-		table.insert(lines, string.format("### %s — `%s`", c.date, c.message))
-		table.insert(lines, string.format("- Commit: `%s`", c.hash))
-		table.insert(lines, string.format("- Author: %s", c.author))
-		table.insert(lines, "")
+		local row = string.format("| %s | `%s` | %s | %s |", c.date, c.hash, c.author, c.message)
+		table.insert(lines, row)
 	end
 	return table.concat(lines, "\n")
 end
