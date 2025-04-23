@@ -14,7 +14,10 @@ Add this to your lazy config:
 ```lua
 return {
   "minollisantiago/lazyllm.nvim",
-  dependencies = { "nvim-lua/plenary.nvim" },
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "nvim-telescope/telescope.nvim",
+  },
 
   config = function()
     local system_prompt = "Your are a helpful assistant."
@@ -53,10 +56,22 @@ return {
       }, lazyllm.make_gemini_spec_curl_args, lazyllm.handle_gemini_spec_data)
     end
 
+    -- Symbol lookup: LSP
+    local function Symbol_context_lookup_lsp()
+      lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list)
+    end
+    --
+    -- Symbol lookup: LSP, write the result at the cursor
+    local function Symbol_context_lookup_lsp_write_at_cursor()
+      lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_at_cursor)
+    end
+
     -- Keymappings
-    vim.keymap.set({ "n", "v" }, "<leader>oa", OpenAI_help, { desc = "LLM: OpenAI chat" })
-    vim.keymap.set({ "n", "v" }, "<leader>an", Claude_help, { desc = "LLM: Anthropic (Claude) chat" })
-    vim.keymap.set({ "n", "v" }, "<leader>gm", Gemini_help, { desc = "LLM: Gemini chat" })
+    vim.keymap.set({ "n", "v" }, "<leader>po", OpenAI_help, { desc = "LLM: OpenAI chat" })
+    vim.keymap.set({ "n", "v" }, "<leader>pc", Claude_help, { desc = "LLM: Anthropic (Claude) chat" })
+    vim.keymap.set({ "n", "v" }, "<leader>pg", Gemini_help, { desc = "LLM: Gemini chat" })
+    vim.keymap.set("n", "<leader>pl", Symbol_context_lookup_lsp, { desc = "LLM on symbol" })
+    vim.keymap.set("n", "<leader>pt", Symbol_context_lookup_lsp_write_at_cursor, { desc = "LLM on symbol - cursor" })
   end,
 }
 ```
