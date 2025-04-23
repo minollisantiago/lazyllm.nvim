@@ -27,16 +27,37 @@ function M.get_git_log(limit)
 	return commits
 end
 
--- Insert commits into buffer using your write_at_cursor
-function M.list_commits(limit, handle_commits_fn)
+-- Format commits markdown
+function M.format_commits_markdown(commits)
+	local lines = {}
+	for _, c in ipairs(commits) do
+		table.insert(lines, string.format("### %s — `%s`", c.date, c.message))
+		table.insert(lines, string.format("- Commit: `%s`", c.hash))
+		table.insert(lines, string.format("- Author: %s", c.author))
+		table.insert(lines, "")
+	end
+	return table.concat(lines, "\n")
+end
+
+-- Format commits flat stype
+function M.format_commits_flat(commits)
+	local lines = {}
+	for _, c in ipairs(commits) do
+		table.insert(lines, string.format("[%s] %s — %s", c.date, c.hash, c.message))
+	end
+	return table.concat(lines, "\n")
+end
+
+-- List commits, format them and handle the result
+function M.list_commits(limit, format_commits_fn, handle_commits_fn)
 	local commits = M.get_git_log(limit or 20)
 	if vim.tbl_isempty(commits) then
 		vim.notify("No git commits found", vim.log.levels.WARN)
 		return
 	end
-
+	local commits_ = format_commits_fn(commits)
 	if handle_commits_fn then
-		handle_commits_fn(commits)
+		handle_commits_fn(commits_)
 	else
 		print("Here is the list of selected commits:\n\n" .. commits)
 	end

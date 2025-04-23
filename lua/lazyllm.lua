@@ -9,6 +9,8 @@ M.select_symbol_and_get_text = symbols.select_symbol_and_get_text
 
 -- Git utils
 local git_utils = require("git_utils")
+M.format_commits_markdown = git_utils.format_commits_markdown
+M.format_commits_flat = git_utils.format_commits_flat
 M.list_commits = git_utils.list_commits
 
 local function get_api_key(name)
