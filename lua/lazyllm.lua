@@ -1,11 +1,15 @@
 local M = {}
 local Job = require("plenary.job")
 
--- Require symbol lookup utils
+-- Symbol lookup utils
 local symbols = require("symbol_utils")
 M.get_symbol_list = symbols.get_symbol_list
 M.get_symbol_list_treesitter = symbols.get_symbol_list_treesitter
 M.select_symbol_and_get_text = symbols.select_symbol_and_get_text
+
+-- Git utils
+local git_utils = require("git_utils")
+M.list_commits = git_utils.list_commits
 
 local function get_api_key(name)
 	return os.getenv(name)
