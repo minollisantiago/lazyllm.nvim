@@ -175,10 +175,10 @@ function M.write_string_at_cursor(str)
 	end)
 end
 
-function M.write_string_to_register(str, register)
-	register = register or '"'
+function M.write_string_to_register(str)
 	local lines = vim.split(str, "\n", { plain = true })
-	vim.fn.setreg(register, lines)
+	vim.fn.setreg("+", lines)
+	vim.notify("Copied to system clipboard!", vim.log.levels.INFO, { title = "Clipboard" })
 end
 
 local function get_prompt(opts)
