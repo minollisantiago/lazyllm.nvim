@@ -4,6 +4,9 @@ My own (dirty and lazy) take on [Yacine's dingllm scripts](https://github.com/ya
 
 https://github.com/user-attachments/assets/2b83319f-704d-479c-b496-3c8836ee72c4
 
+>![NOTE]
+Ive extended the scripts to include Gemini and symbol lookup with telescope. The idea is to be able to quickly find and paste symbols to the chat for more context.
+
 ### Lazy config
 Add your API keys to your env, here is an example with fish:
 ```fish
