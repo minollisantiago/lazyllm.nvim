@@ -175,6 +175,12 @@ function M.write_string_at_cursor(str)
 	end)
 end
 
+function M.write_string_to_register(str, register)
+	register = register or '"'
+	local lines = vim.split(str, "\n", { plain = true })
+	vim.fn.setreg(register, lines)
+end
+
 local function get_prompt(opts)
 	local replace = opts.replace
 	local visual_lines = M.get_visual_selection()

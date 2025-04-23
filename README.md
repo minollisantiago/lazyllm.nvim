@@ -61,22 +61,42 @@ return {
       }, lazyllm.make_gemini_spec_curl_args, lazyllm.handle_gemini_spec_data)
     end
 
+    -- Default chat
+    local default_provider = "gemini"
+    local llms = {
+      openai = OpenAI_help,
+      claude = Claude_help,
+      gemini = Gemini_help,
+    }
+
+    local function LLM_chat(provider)
+      return llms[provider]
+    end
+
     -- Symbol lookup: LSP
     local function Symbol_context_lookup_lsp()
       lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list)
     end
     --
-    -- Symbol lookup: LSP, write the result at the cursor
+    -- Symbol lookup: LSP + write the symbol at the cursor (wrapped in code blocks)
     local function Symbol_context_lookup_lsp_write_at_cursor()
-      lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_at_cursor)
+      lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_at_cursor, true)
+    end
+
+    -- Commit list at the cursor
+    local function Get_commits_write_at_cursor_md()
+      lazyllm.list_commits(100, lazyllm.format_commits_markdown, lazyllm.write_string_at_cursor)
+    end
+    local function Get_commits_write_at_cursor_flat()
+      lazyllm.list_commits(100, lazyllm.format_commits_flat, lazyllm.write_string_at_cursor)
     end
 
     -- Keymappings
-    vim.keymap.set({ "n", "v" }, "<leader>po", OpenAI_help, { desc = "LLM: OpenAI chat" })
-    vim.keymap.set({ "n", "v" }, "<leader>pc", Claude_help, { desc = "LLM: Anthropic (Claude) chat" })
-    vim.keymap.set({ "n", "v" }, "<leader>pg", Gemini_help, { desc = "LLM: Gemini chat" })
-    vim.keymap.set("n", "<leader>pl", Symbol_context_lookup_lsp, { desc = "LLM on symbol" })
-    vim.keymap.set("n", "<leader>pt", Symbol_context_lookup_lsp_write_at_cursor, { desc = "LLM on symbol - cursor" })
+    vim.keymap.set({ "n", "v" }, "<leader>pc", LLM_chat(default_provider), { desc = "LLM chat" })
+    vim.keymap.set("n", "<leader>pl", Symbol_context_lookup_lsp, { desc = "Symbol lookup" })
+    vim.keymap.set("n", "<leader>pp", Symbol_context_lookup_lsp_write_at_cursor, { desc = "Symbol lookup - cursor" })
+    vim.keymap.set("n", "<leader>pgm", Get_commits_write_at_cursor_md, { desc = "Get commits at cursor - md" })
+    vim.keymap.set("n", "<leader>pgf", Get_commits_write_at_cursor_flat, { desc = "Get commits at cursor - flat" })
   end,
 }
 ```
