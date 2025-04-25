@@ -1,6 +1,6 @@
 local M = {}
 
-function M.select_file_and_get_text()
+function M.select_file_and_get_text(handle_symbol_fn)
 	local pickers = require("telescope.pickers")
 	local finders = require("telescope.finders")
 	local actions = require("telescope.actions")
@@ -44,14 +44,16 @@ function M.select_file_and_get_text()
 					local entry = action_state.get_selected_entry()
 					local filepath = entry.value
 
-					local lines = {}
+					local fileContents = {}
 					for line in io.lines(filepath) do
-						table.insert(lines, line)
+						table.insert(fileContents, line)
 					end
 
-					-- Insert into the current buffer at the cursor position
-					local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-					vim.api.nvim_buf_set_lines(0, row, row, false, lines)
+					if handle_symbol_fn then
+						handle_symbol_fn(fileContents)
+					else
+						print("Here is the selected file contents:\n\n" .. fileContents)
+					end
 				end)
 				return true
 			end,
