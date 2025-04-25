@@ -4,8 +4,11 @@ local Job = require("plenary.job")
 -- Symbol lookup utils
 local symbols = require("symbol_utils")
 M.get_symbol_list = symbols.get_symbol_list
-M.get_symbol_list_treesitter = symbols.get_symbol_list_treesitter
 M.select_symbol_and_get_text = symbols.select_symbol_and_get_text
+
+-- File lookup utils
+local files = require("file_utils")
+M.select_file_and_paste_contents = files.select_file_and_paste_contents
 
 -- Git utils
 local git_utils = require("git_utils")

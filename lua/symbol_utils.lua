@@ -1,7 +1,5 @@
 local M = {}
 
-local parsers = require("nvim-treesitter.parsers")
-
 -- default LSP SymbolKinds
 local default_allowed_kinds = {
 	[5] = "Class",
@@ -56,107 +54,6 @@ function M.get_symbol_list(allowed_kinds)
 			end
 		end
 	end
-	return out
-end
-
--- Tree-sitter based symbol lookup (supports TS types/interfaces, arrow funcs, etc.)
-function M.get_symbol_list_treesitter()
-	local out = {}
-
-	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-		if vim.api.nvim_buf_is_loaded(bufnr) and vim.bo[bufnr].buftype == "" then
-			local lang = parsers.get_buf_lang(bufnr)
-			local parser = vim.treesitter.get_parser(bufnr, lang)
-			if not parser then
-				goto continue
-			end
-
-			local tree = parser:parse()[1]
-			local root = tree:root()
-
-			local function walk(node)
-				if not node then
-					return
-				end
-
-				local type = node:type()
-
-				-- React components or other function-as-variable
-				if type == "lexical_declaration" or type == "variable_declaration" then
-					for i = 0, node:named_child_count() - 1 do
-						local child = node:named_child(i)
-						if not child then
-							goto skip
-						end
-
-						local name_node = child:field("name")[1]
-						local value_node = child:field("value")[1]
-
-						if name_node and value_node then
-							local value_type = value_node:type()
-							if value_type == "arrow_function" or value_type == "function" then
-								local name = vim.treesitter.get_node_text(name_node, bufnr)
-								local start_row = value_node:range()
-
-								table.insert(out, {
-									name = name,
-									range = { start = { line = start_row } },
-									kind = "Function (var)",
-									bufnr = bufnr,
-								})
-							end
-						end
-
-						::skip::
-					end
-				end
-
-				-- Regular function declaration
-				if type == "function_declaration" then
-					local name_node = node:field("name")[1]
-					if name_node then
-						local name = vim.treesitter.get_node_text(name_node, bufnr)
-						local start_row = node:range()
-						table.insert(out, {
-							name = name,
-							range = { start = { line = start_row } },
-							kind = "Function",
-							bufnr = bufnr,
-						})
-					end
-				end
-
-				-- Class, interface, type
-				if
-					type == "class_declaration"
-					or type == "interface_declaration"
-					or type == "type_alias_declaration"
-				then
-					local name_node = node:field("name")[1]
-					if name_node then
-						local name = vim.treesitter.get_node_text(name_node, bufnr)
-						local start_row = node:range()
-						table.insert(out, {
-							name = name,
-							range = { start = { line = start_row } },
-							kind = type,
-							bufnr = bufnr,
-						})
-					end
-				end
-
-				-- Recursively walk children
-				for i = 0, node:named_child_count() - 1 do
-					walk(node:named_child(i))
-				end
-			end
-
-			walk(root)
-
-			::continue::
-		end
-	end
-
 	return out
 end
 
