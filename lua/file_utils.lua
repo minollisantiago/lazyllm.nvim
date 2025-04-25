@@ -1,6 +1,6 @@
 local M = {}
 
-function M.select_file_and_paste_contents()
+function M.select_file_and_get_text()
 	local pickers = require("telescope.pickers")
 	local finders = require("telescope.finders")
 	local actions = require("telescope.actions")
