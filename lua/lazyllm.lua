@@ -7,8 +7,8 @@ M.get_symbol_list = symbols.get_symbol_list
 M.select_symbol_and_get_text = symbols.select_symbol_and_get_text
 
 -- File lookup utils
-local files = require("file_utils")
-M.select_file_and_get_text = files.select_file_and_get_text
+local file_utils = require("file_utils")
+M.select_file_and_get_text = file_utils.select_file_and_get_text
 
 -- Git utils
 local git_utils = require("git_utils")
