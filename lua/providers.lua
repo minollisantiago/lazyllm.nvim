@@ -96,4 +96,41 @@ function M.make_gemini_spec_curl_args(opts, prompt, system_prompt)
 	return args
 end
 
+function M.handle_anthropic_spec_data(data_stream, event_state)
+	if event_state == "content_block_delta" then
+		local json = vim.json.decode(data_stream)
+		if json.delta and json.delta.text then
+			M.write_string_at_cursor(json.delta.text)
+		end
+	end
+end
+
+function M.handle_openai_spec_data(data_stream)
+	if data_stream:match('"delta":') then
+		local json = vim.json.decode(data_stream)
+		if json.choices and json.choices[1] and json.choices[1].delta then
+			local content = json.choices[1].delta.content
+			if content then
+				M.write_string_at_cursor(content)
+			end
+		end
+	end
+end
+
+function M.handle_gemini_spec_data(data_stream)
+	if data_stream:match('"candidates":') then
+		local ok, json = pcall(vim.json.decode, data_stream)
+		if ok and json.candidates and json.candidates[1] then
+			local parts = json.candidates[1].content and json.candidates[1].content.parts
+			if parts then
+				for _, part in ipairs(parts) do
+					if part.text then
+						M.write_string_at_cursor(part.text)
+					end
+				end
+			end
+		end
+	end
+end
+
 return M
