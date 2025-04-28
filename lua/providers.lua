@@ -1,12 +1,12 @@
 local M = {}
 
-function M.get_api_key(name)
+local function get_api_key(name)
 	return os.getenv(name)
 end
 
 function M.make_anthropic_spec_curl_args(opts, prompt, system_prompt)
 	local url = opts.url
-	local api_key = opts.api_key_name and M.get_api_key(opts.api_key_name)
+	local api_key = opts.api_key_name and get_api_key(opts.api_key_name)
 	if not api_key then
 		error("API key not found for: " .. opts.api_key_name)
 	end
@@ -30,7 +30,7 @@ end
 
 function M.make_openai_spec_curl_args(opts, prompt, system_prompt)
 	local url = opts.url
-	local api_key = opts.api_key_name and M.get_api_key(opts.api_key_name)
+	local api_key = opts.api_key_name and get_api_key(opts.api_key_name)
 	if not api_key then
 		error("API key not found for: " .. opts.api_key_name)
 	end
@@ -60,7 +60,7 @@ function M.make_gemini_spec_curl_args(opts, prompt, system_prompt)
 		return nil
 	end
 
-	local api_key = opts.api_key_name and M.get_api_key(opts.api_key_name)
+	local api_key = opts.api_key_name and get_api_key(opts.api_key_name)
 	if not api_key then
 		error("Could not retrieve Gemini API key using name: " .. opts.api_key_name)
 		return nil
