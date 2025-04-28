@@ -138,15 +138,14 @@ function M.select_symbol_and_get_text(symbol_lookup_fn, handle_symbol_fn, wrap_t
 					if wrap_tag then
 						local wrap = require("promp_utils")
 						local filetype = vim.bo[bufnr].filetype or "text"
-						local wrapped = {
-							"```" .. filetype,
+						local wrapped = { "```" .. filetype, symbolText, "```" }
+						wrapped = {
 							wrap.wrap_context_xml(wrap_tag, symbolText, {
 								name = selection.name,
 								kind = selection.kind,
 								file = selection.file,
 								filetype = filetype,
 							}),
-							"```",
 						}
 						symbolText = table.concat(wrapped, "\n")
 					end
