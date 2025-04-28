@@ -6,6 +6,7 @@ local Job = require("plenary.job")
 -- Prompt utils
 local prompts = require("promp_utils")
 M.get_prompt = prompts.get_prompt
+M.wrap_context_xml = prompts.wrap_context_xml
 
 -- Symbol lookup utils
 local symbols = require("symbol_utils")
