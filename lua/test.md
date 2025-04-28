@@ -1,4 +1,5 @@
-<llm_context kind="Function" filetype="lua" name="M.get_lines_until_cursor">
+<llm_context name="M.get_lines_until_cursor" filetype="lua" kind="Function">
+```lua
 function M.get_lines_until_cursor()
 	local current_buffer = vim.api.nvim_get_current_buf()
 	local current_window = vim.api.nvim_get_current_win()
@@ -9,4 +10,9 @@ function M.get_lines_until_cursor()
 
 	return table.concat(lines, "\n")
 end
+```
 </llm_context>
+
+Explain this function please
+
+
