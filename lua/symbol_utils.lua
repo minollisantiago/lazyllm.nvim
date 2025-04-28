@@ -58,7 +58,7 @@ function M.get_symbol_list(allowed_kinds)
 end
 
 -- Telescope picker
-function M.select_symbol_and_get_text(symbol_lookup_fn, handle_symbol_fn, wrap_fn)
+function M.select_symbol_and_get_text(symbol_lookup_fn, handle_symbol_fn, wrap_tag)
 	local pickers = require("telescope.pickers")
 	local finders = require("telescope.finders")
 	local actions = require("telescope.actions")
@@ -135,11 +135,12 @@ function M.select_symbol_and_get_text(symbol_lookup_fn, handle_symbol_fn, wrap_f
 					local lines = vim.api.nvim_buf_get_lines(bufnr, start_row, end_row + 1, false)
 					local symbolText = table.concat(lines, "\n")
 
-					if wrap_fn then
+					if wrap_tag then
+						local wrap = require("promp_utils")
 						local filetype = vim.bo[bufnr].filetype or "text"
 						local wrapped = {
 							"```" .. filetype,
-							wrap_fn(symbolText, {
+							wrap.wrap_context_xml(wrap_tag, symbolText, {
 								name = selection.name,
 								kind = selection.kind,
 								file = selection.file,
