@@ -25,7 +25,8 @@ return {
   },
 
   config = function()
-    local system_prompt = "Your are a helpful assistant."
+    local system_prompt =
+      "Your are a helpful assistant. Always begin your answers with the following format: ### LLM RESPONSE: n/"
     local lazyllm = require("lazyllm")
 
     -- OpenAI Chat
@@ -73,19 +74,26 @@ return {
       return llms[provider]
     end
 
-    -- Symbol lookup: LSP
+    -- Symbol lookup: LSP (with telescope)
 
     -- + write the symbol at the cursor (wrapped in code blocks)
     local function Symbol_context_lookup_lsp_write_at_cursor()
       lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_at_cursor, true)
     end
 
-    -- + write the symbol to the unnamed register (for pasting wherever)
+    -- + write the symbol to the clipboard
     local function Symbol_context_lookup_lsp_write_on_register()
       lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_to_register, false)
     end
 
-    -- Commit list at the cursor
+    -- File lookup: LSP (with telescope)
+
+    -- + write all file contents at the cursor (wrapped in code blocks)
+    local function File_context_lookup_write_at_cursor()
+      lazyllm.select_file_and_get_text(lazyllm.write_string_at_cursor, true)
+    end
+
+    -- Commit list at the cursor, pretty useful for existing projects (for summarization)
     local max_number_of_commits = 100
     local function Get_commits_write_at_cursor_md()
       lazyllm.list_commits(max_number_of_commits, lazyllm.format_commits_markdown, lazyllm.write_string_at_cursor)
@@ -98,6 +106,7 @@ return {
     vim.keymap.set({ "n", "v" }, "<leader>pc", LLM_chat(default_provider), { desc = "LLM chat" })
     vim.keymap.set("n", "<leader>pl", Symbol_context_lookup_lsp_write_on_register, { desc = "Symbol lookup - reg" })
     vim.keymap.set("n", "<leader>pp", Symbol_context_lookup_lsp_write_at_cursor, { desc = "Symbol lookup - cursor" })
+    vim.keymap.set("n", "<leader>pf", File_context_lookup_write_at_cursor, { desc = "File lookup - cursor" })
     vim.keymap.set("n", "<leader>pgm", Get_commits_write_at_cursor_md, { desc = "Get commits at cursor - md" })
     vim.keymap.set("n", "<leader>pgf", Get_commits_write_at_cursor_flat, { desc = "Get commits at cursor - flat" })
   end,
