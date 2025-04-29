@@ -1,23 +1,19 @@
--- lua/lazyllm/file_utils.lua (or wherever you place your modules)
 local M = {}
 
 local pickers = require("telescope.pickers")
--- local finders = require("telescope.finders") -- Not strictly needed if using telescope.builtin
 local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 local conf = require("telescope.config").values
--- local previewers = require("telescope.previewers") -- Not needed if using default find_files previewer
 local builtin = require("telescope.builtin")
 
 --- Opens a Telescope fuzzy finder for files in the current working directory.
 -- On selection, reads the file content and passes it to the provided handler function.
---
+
 -- @param handle_file_fn function: The function to call with the file content string.
---        Expected signature: handle_file_fn(file_content_string)
--- @param wrap_file boolean|nil: If true, wrap the file content with comments
---        and a markdown code block indicating filename and type. Defaults to false.
-function M.select_file_and_get_text(handle_file_fn, wrap_file)
-	-- Ensure a handler function is provided
+-- Expected signature: handle_file_fn(file_content_string)
+-- @param wrap_tag string|nil: If truthy, wrap the file content with xml tags (wrap_tag)
+-- and a markdown code block indicating filename and type. Defaults to nil.
+function M.select_file_and_get_text(handle_file_fn, wrap_tag)
 	if not handle_file_fn or type(handle_file_fn) ~= "function" then
 		vim.notify("No handler function provided for file selection.", vim.log.levels.ERROR, { title = "LazyLLM" })
 		return
@@ -58,28 +54,32 @@ function M.select_file_and_get_text(handle_file_fn, wrap_file)
 				local fileText = table.concat(lines, "\n")
 
 				-- Wrap the content if requested
-				if wrap_file then
+				if wrap_tag then
+					local wrap = require("promp_utils")
 					local filename = vim.fn.fnamemodify(file_path, ":t") -- Get filename only
 					local filetype = vim.fn.fnamemodify(file_path, ":e") -- Get extension as simple filetype hint
 					if filetype == "" then
 						filetype = "text"
 					end -- Fallback for files without extension
-
+					local file_code_block = table.concat({ "```" .. filetype, fileText, "```" }, "\n")
 					local wrapped = {
-						"<!-- File: " .. filename .. " -->",
-						"```" .. filetype,
-						fileText,
-						"```",
+						wrap.wrap_context_xml(wrap_tag, file_code_block, {
+							name = filename,
+							filetype = filetype,
+							file = selection.file,
+							path = selection.path,
+						}),
 					}
 					fileText = table.concat(wrapped, "\n")
 				end
 
 				-- Call the provided handler function with the final text
-				handle_file_fn(fileText)
+				if handle_file_fn then
+					handle_file_fn(fileText)
+				else
+					print("Selected file contents:\n\n" .. fileText)
+				end
 			end)
-
-			-- Keep default mappings like Ctrl+X, Ctrl+V, Ctrl+T if desired
-			-- actions.select_split:enhance({...}) -- example
 
 			return true -- Indicate that mappings were attached/modified
 		end,

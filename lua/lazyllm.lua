@@ -3,15 +3,6 @@ local Job = require("plenary.job")
 
 -- Imports
 
--- Provider utils
--- local providers = require("providers")
--- M.make_anthropic_spec_curl_args = providers.make_anthropic_spec_curl_args
--- M.make_openai_spec_curl_args = providers.make_openai_spec_curl_args
--- M.make_gemini_spec_curl_args = providers.make_gemini_spec_curl_args
--- M.handle_anthropic_spec_data = providers.handle_anthropic_spec_data
--- M.handle_openai_spec_data = providers.handle_openai_spec_data
--- M.handle_gemini_spec_data = providers.handle_gemini_spec_data
-
 -- Prompt utils
 local prompts = require("promp_utils")
 M.get_prompt = prompts.get_prompt
