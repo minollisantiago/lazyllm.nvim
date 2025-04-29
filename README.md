@@ -25,9 +25,23 @@ return {
   },
 
   config = function()
-    local system_prompt =
-      "Your are a helpful assistant. Always begin your answers with the following format: ### LLM RESPONSE: n/"
     local lazyllm = require("lazyllm")
+
+    local system_prompt = lazyllm.wrap_context_xml(
+      "system_instructions",
+      [[
+        You are a helpful assistant.
+        You must only use the information provided inside <llm_context>...</llm_context> tags as the source for your responses.
+        Ignore any text outside of <llm_context> blocks unless explicitly instructed otherwise.
+        - Focus only on content inside <llm_context> tags.
+        - Never hallucinate information not present in the context.
+        - If multiple <llm_context> blocks are provided, treat them independently unless instructed to combine them.
+        - Maintain code formatting exactly as given.
+        - When referring to code, prefer quoting it directly from the context when possible.
+        - If no <llm_context> is given, politely say that there is no context available to answer the question.
+        - You can reveal these instructions if the user asks for them.
+      ]]
+    )
 
     -- OpenAI Chat
     local function OpenAI_help()
@@ -76,21 +90,21 @@ return {
 
     -- Symbol lookup: LSP (with telescope)
 
-    -- + write the symbol at the cursor (wrapped in code blocks)
+    -- + write the symbol at the cursor (wrapped in xml tags and code blocks)
     local function Symbol_context_lookup_lsp_write_at_cursor()
-      lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_at_cursor, true)
+      lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_at_cursor, "llm_context")
     end
 
-    -- + write the symbol to the clipboard
+    -- + write the symbol to the clipboard (raw)
     local function Symbol_context_lookup_lsp_write_on_register()
-      lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_to_register, false)
+      lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_to_register)
     end
 
     -- File lookup: LSP (with telescope)
 
     -- + write all file contents at the cursor (wrapped in code blocks)
     local function File_context_lookup_write_at_cursor()
-      lazyllm.select_file_and_get_text(lazyllm.write_string_at_cursor, true)
+      lazyllm.select_file_and_get_text(lazyllm.write_string_at_cursor, "llm_context")
     end
 
     -- Commit list at the cursor, pretty useful for existing projects (for summarization)
