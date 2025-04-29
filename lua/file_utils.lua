@@ -6,7 +6,7 @@ local action_state = require("telescope.actions.state")
 local conf = require("telescope.config").values
 local builtin = require("telescope.builtin")
 
---- Opens a Telescope fuzzy finder for files in the current working directory.
+-- Opens a Telescope fuzzy finder for files in the current working directory.
 -- On selection, reads the file content and passes it to the provided handler function.
 
 -- @param handle_file_fn function: The function to call with the file content string.

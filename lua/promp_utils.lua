@@ -100,12 +100,30 @@ local function escape_xml(str)
 	return str
 end
 
+local function sanitize_tag(tag)
+	-- Sanitizes a tag to ensure it is a valid XML tag name.
+	-- XML rules:
+	-- Start with a letter or underscore (_).
+	-- Can contain letters, numbers, hyphens (-), underscores (_), periods (.).
+	-- No spaces or weird symbols.Start with a letter or underscore (_).
+	-- Can contain letters, numbers, hyphens (-), underscores (_), periods (.).
+	-- No spaces or weird symbols.
+	-- @param tag string The tag to sanitize.
+	-- @return string|nil The sanitized tag, or nil if the tag is invalid.
+	if not tag:match("^[%a_][%w%-_%.]*$") then
+		vim.notify("Invalid wrap_tag: " .. tag, vim.log.levels.ERROR)
+		return nil
+	end
+	return tag
+end
+
 function M.wrap_context_xml(tag, content, metadata)
 	local attributes = ""
+	local clean_tag = sanitize_tag(tag)
 	for k, v in pairs(metadata or {}) do
 		attributes = attributes .. string.format(' %s="%s"', k, v)
 	end
-	return string.format("<%s%s>\n%s\n</%s>", tag, attributes, escape_xml(content), tag)
+	return string.format("<%s%s>\n%s\n</%s>", clean_tag, attributes, escape_xml(content), tag)
 end
 
 return M

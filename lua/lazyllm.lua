@@ -78,26 +78,29 @@ function M.make_gemini_spec_curl_args(opts, prompt, system_prompt)
 	-- Validate necessary options
 	if not opts.model then
 		error("opts.model (e.g., 'gemini-2.0-flash') is required for the Gemini API URL")
-		return nil
 	end
 	if not opts.api_key_name then
 		error("opts.api_key_name is required for Gemini API authentication")
-		return nil
 	end
 
 	local api_key = opts.api_key_name and get_api_key(opts.api_key_name)
 	if not api_key then
 		error("Could not retrieve Gemini API key using name: " .. opts.api_key_name)
-		return nil
 	end
 
 	-- Construct the gemini API URL
 	local url = string.format("%sv1beta/models/%s:streamGenerateContent?alt=sse", opts.url, opts.model)
 
 	-- Prompts
+	local final_prompt = prompt
+	if system_prompt and system_prompt ~= "" then
+		final_prompt = system_prompt .. "\n---\n" .. prompt
+	end
+
+	-- Build the payload
 	local data = {
 		contents = {
-			{ role = "user", parts = { { text = prompt } } },
+			{ role = "user", parts = { { text = final_prompt } } },
 		},
 		generationConfig = {
 			temperature = opts.temperature or 0.7,
@@ -115,9 +118,9 @@ function M.make_gemini_spec_curl_args(opts, prompt, system_prompt)
 		"x-goog-api-key: " .. api_key,
 		"-d",
 		vim.json.encode(data),
+		url,
 	}
 
-	table.insert(args, url)
 	return args
 end
 
