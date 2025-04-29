@@ -27,8 +27,13 @@ return {
   config = function()
     local lazyllm = require("lazyllm")
 
+    local tags = {
+      system = "system_instructions",
+      context = "llm_context",
+    }
+
     local system_prompt = lazyllm.wrap_context_xml(
-      "system_instructions",
+      tags["system"],
       [[
         You are a helpful assistant.
         You must only use the information provided inside <llm_context>...</llm_context> tags as the source for your responses.
@@ -92,7 +97,7 @@ return {
 
     -- + write the symbol at the cursor (wrapped in xml tags and code blocks)
     local function Symbol_context_lookup_lsp_write_at_cursor()
-      lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_at_cursor, "llm_context")
+      lazyllm.select_symbol_and_get_text(lazyllm.get_symbol_list, lazyllm.write_string_at_cursor, tags["context"])
     end
 
     -- + write the symbol to the clipboard (raw)
@@ -104,7 +109,7 @@ return {
 
     -- + write all file contents at the cursor (wrapped in code blocks)
     local function File_context_lookup_write_at_cursor()
-      lazyllm.select_file_and_get_text(lazyllm.write_string_at_cursor, "llm_context")
+      lazyllm.select_file_and_get_text(lazyllm.write_string_at_cursor, tags["context"])
     end
 
     -- Commit list at the cursor, pretty useful for existing projects (for summarization)
