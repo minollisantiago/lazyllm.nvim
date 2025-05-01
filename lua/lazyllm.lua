@@ -145,26 +145,17 @@ function M.handle_openai_spec_data(data_stream)
 	end
 end
 
-function M.handle_gemini_spec_data(data_stream, opts)
-	opts = opts or {}
-
-	local prefix = opts.prefix or "---\n## >>>>>>>>>>>>> LLM RESPONSE STARTS <<<<<<<<<<<<<<\n"
-	local suffix = opts.suffix or "\n## >>>>>>>>>>>>> LLM RESPONSE ENDS <<<<<<<<<<<<<<\n---\n"
-
+function M.handle_gemini_spec_data(data_stream)
 	if data_stream:match('"candidates":') then
 		local ok, json = pcall(vim.json.decode, data_stream)
 		if ok and json.candidates and json.candidates[1] then
 			local parts = json.candidates[1].content and json.candidates[1].content.parts
 			if parts then
-				M.write_string_at_cursor(prefix)
-
 				for _, part in ipairs(parts) do
 					if part.text then
 						M.write_string_at_cursor(part.text)
 					end
 				end
-
-				M.write_string_at_cursor(suffix)
 			end
 		end
 	end
@@ -176,6 +167,10 @@ local active_job = nil
 
 function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_data_fn)
 	vim.api.nvim_clear_autocmds({ group = group })
+
+	local prefix = opts.prefix or "---\n## >>>>>>>>>>>>> LLM RESPONSE STARTS <<<<<<<<<<<<<<\n"
+	local suffix = opts.suffix or "\n## >>>>>>>>>>>>> LLM RESPONSE ENDS <<<<<<<<<<<<<<\n---\n"
+	local stream_started = false
 
 	-- build prompt & curl args
 	local prompt = M.get_prompt(opts)
@@ -208,6 +203,10 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 		command = "curl",
 		args = args,
 		on_stdout = function(_, out)
+			if not stream_started then
+				M.write_string_at_cursor(prefix)
+				stream_started = true
+			end
 			vim.schedule(function()
 				print("Parsing LLM response...")
 			end)
@@ -215,6 +214,7 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 		end,
 		on_stderr = function(_, _) end,
 		on_exit = function(_, code, signal)
+			M.write_string_at_cursor(suffix)
 			vim.schedule(function()
 				print("LLM job exited, Code:", code, "Signal:", signal)
 			end)
