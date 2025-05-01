@@ -168,8 +168,8 @@ local active_job = nil
 function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_data_fn)
 	vim.api.nvim_clear_autocmds({ group = group })
 
-	local prefix = opts.prefix or "---\n## >>>>>>>>>>>>> LLM RESPONSE STARTS <<<<<<<<<<<<<<\n"
-	local suffix = opts.suffix or "\n## >>>>>>>>>>>>> LLM RESPONSE ENDS <<<<<<<<<<<<<<\n---\n"
+	local prefix = opts.prefix or "---\n## >>>>>>>>>>>>> LLM RESPONSE STARTS <<<<<<<<<<<<<<\n\n"
+	local suffix = opts.suffix or "\n## >>>>>>>>>>>>> LLM RESPONSE ENDS <<<<<<<<<<<<<<\n---\n\n"
 	local stream_started = false
 
 	-- build prompt & curl args
