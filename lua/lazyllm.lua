@@ -145,17 +145,26 @@ function M.handle_openai_spec_data(data_stream)
 	end
 end
 
-function M.handle_gemini_spec_data(data_stream)
+function M.handle_gemini_spec_data(data_stream, opts)
+	opts = opts or {}
+
+	local prefix = opts.prefix or "---\n## >>>>>>>>>>>>> LLM RESPONSE STARTS <<<<<<<<<<<<<<\n"
+	local suffix = opts.suffix or "\n## >>>>>>>>>>>>> LLM RESPONSE ENDS <<<<<<<<<<<<<<\n---\n"
+
 	if data_stream:match('"candidates":') then
 		local ok, json = pcall(vim.json.decode, data_stream)
 		if ok and json.candidates and json.candidates[1] then
 			local parts = json.candidates[1].content and json.candidates[1].content.parts
 			if parts then
+				M.write_string_at_cursor(prefix)
+
 				for _, part in ipairs(parts) do
 					if part.text then
 						M.write_string_at_cursor(part.text)
 					end
 				end
+
+				M.write_string_at_cursor(suffix)
 			end
 		end
 	end
