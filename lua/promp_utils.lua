@@ -94,6 +94,7 @@ end
 
 local function escape_xml(str)
 	-- Minimal escaping for &, <, > inside content
+	-- Disabled it for now, its causing issues with html and react snippets
 	str = str:gsub("&", "&amp;")
 	str = str:gsub("<", "&lt;")
 	str = str:gsub(">", "&gt;")
@@ -123,7 +124,7 @@ function M.wrap_context_xml(tag, content, metadata)
 	for k, v in pairs(metadata or {}) do
 		attributes = attributes .. string.format(' %s="%s"', k, v)
 	end
-	return string.format("<%s%s>\n%s\n</%s>", clean_tag, attributes, escape_xml(content), tag)
+	return string.format("<%s%s>\n%s\n</%s>", clean_tag, attributes, content, tag)
 end
 
 return M
