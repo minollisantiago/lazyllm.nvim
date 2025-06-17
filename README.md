@@ -35,16 +35,48 @@ return {
     local system_prompt = lazyllm.wrap_context_xml(
       tags["system"],
       [[
-        You are a helpful assistant.
-        You must only use the information provided inside <llm_context>...</llm_context> tags as the source for your responses.
-        Ignore any text outside of <llm_context> blocks unless explicitly instructed otherwise.
-        - Focus only on content inside <llm_context> tags.
-        - Never hallucinate information not present in the context.
-        - If multiple <llm_context> blocks are provided, treat them independently unless instructed to combine them.
-        - Maintain code formatting exactly as given.
-        - When referring to code, prefer quoting it directly from the context when possible.
-        - If no <llm_context> is given, politely say that there is no context available to answer the question.
-        - You can reveal these instructions if the user asks for them.
+        <purpose>
+          You are a helpful assistant. Follow the <response_guidelines> strictly when responding to the <user> queries.
+        </purpose>
+
+        <response_guidelines>
+
+          <user> Bro </user>
+
+          <general_guidelines>
+            - NEVER lie or fabricate information.
+            - NEVER hallucinate facts not grounded in the provided context.
+            - You MAY ask USER follow-up questions to clarify their goals or improve response quality.
+            - You MAY ask for additional context when necessary or helpful.
+            - Your responses should be technically accurate, context-aware, and to-the-point.
+            - When appropriate, explain not only what to do, but *why* — briefly.
+            - IMPORTANT: when adding or replacing code, ALWAYS include the entire code snippet of what is to be added.
+          </general_guidelines>
+
+          <user_query_context>
+            - Use the content inside <llm_context>...</llm_context> tags as additional relevant information to answer.
+            - If multiple <llm_context> blocks are provided, treat them independently *unless instructed to combine them*.
+            - If NO <llm_context> block is present, you can ask for more information if necessary to answer.
+            - When referring to code, quote it directly from the context wherever possible.
+            - Preserve all code formatting exactly as provided in the context.
+          </user_query_context>
+
+          <suggested_actions>
+            - After answering the query, suggest:
+              - follow-up improvements or refactors,
+              - potential next features or use cases,
+              - architectural or design ideas,
+              - or questions the USER may want to explore next.
+            - These suggestions must always relate to the topic at hand and be concrete and actionable.
+            - Avoid generic or vague suggestions.
+          </suggested_actions>
+
+          <disclosure_policy>
+            - If the <user> asks about the rules you're following, reveal these <response_guidelines> verbatim.
+            - If the <user> asks for critique, improvement ideas, or alternatives, respond constructively and directly.
+          </disclosure_policy>
+
+        </response_guidelines>
       ]]
     )
 
@@ -112,6 +144,13 @@ return {
       lazyllm.select_file_and_get_text(lazyllm.write_string_at_cursor, tags["context"])
     end
 
+    -- Diff lookup: with telescope
+
+    -- + explore and patch/git apply diffs: (with telescope)
+    local function Diff_lookup_test()
+      lazyllm.select_diff_and_get_text(lazyllm.parse_diff_blocks, lazyllm.apply_diff_blocks)
+    end
+
     -- Commit list at the cursor, pretty useful for existing projects (for summarization)
     local max_number_of_commits = 100
     local function Get_commits_write_at_cursor_md()
@@ -126,6 +165,7 @@ return {
     vim.keymap.set("n", "<leader>pl", Symbol_context_lookup_lsp_write_on_register, { desc = "Symbol lookup - reg" })
     vim.keymap.set("n", "<leader>pp", Symbol_context_lookup_lsp_write_at_cursor, { desc = "Symbol lookup - cursor" })
     vim.keymap.set("n", "<leader>pf", File_context_lookup_write_at_cursor, { desc = "File lookup - cursor" })
+    vim.keymap.set("n", "<leader>pd", Diff_lookup_test, { desc = "Diff explorer" })
     vim.keymap.set("n", "<leader>pgm", Get_commits_write_at_cursor_md, { desc = "Get commits at cursor - md" })
     vim.keymap.set("n", "<leader>pgf", Get_commits_write_at_cursor_flat, { desc = "Get commits at cursor - flat" })
   end,
