@@ -55,13 +55,19 @@ end
 local DiffPreviewer = previewers.new_buffer_previewer({
 	title = "Diff",
 	define_preview = function(self, entry, _)
-		local buf = vim.api.nvim_create_buf(false, true)
+		local buf = self.state.bufnr -- <- buffer already shown on RHS
 		vim.bo[buf].filetype = "diff"
-		vim.api.nvim_buf_set_lines(buf, 0, -1, false, entry.value.full)
-		self.state.bufnr = buf -- telescope will reuse / wipe
+
+		-- wipe previous contents, then add the fresh diff lines
+		vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
+		vim.api.nvim_buf_set_lines(buf, 0, -1, false, entry.value.full or {})
+
+		-- optional: go to top of preview on every update
+		vim.api.nvim_buf_call(buf, function()
+			vim.cmd("normal! gg")
+		end)
 	end,
 })
-
 ----------------------------------------------------------------------
 -- Picker ------------------------------------------------------------
 ----------------------------------------------------------------------
