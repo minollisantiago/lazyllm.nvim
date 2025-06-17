@@ -19,6 +19,10 @@ M.select_symbol_and_get_text = symbols.select_symbol_and_get_text
 local file_utils = require("file_utils")
 M.select_file_and_get_text = file_utils.select_file_and_get_text
 
+-- Diff utils
+local diff_utils = require("diff_utils")
+M.select_diff_and_get_text = diff_utils.select_diff_and_get_text
+
 -- Git utils
 local git_utils = require("git_utils")
 M.format_commits_markdown = git_utils.format_commits_markdown
