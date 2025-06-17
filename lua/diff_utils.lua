@@ -12,7 +12,7 @@ local M = {}
 
 -- Parses current buffer for ```diff fenced blocks.
 -- Returns table of { filename, linenr (1‑based), full (array of lines) }
-local function parse_diff_blocks(bufnr)
+function M.parse_diff_blocks(bufnr)
 	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 	local diffs, inside, start_ln, block = {}, false, nil, {}
 
