@@ -22,6 +22,7 @@ M.select_file_and_get_text = file_utils.select_file_and_get_text
 -- Diff utils
 local diff_utils = require("diff_utils")
 M.parse_diff_blocks = diff_utils.parse_diff_blocks
+M.apply_diff_blocks = diff_utils.apply_diff_block
 M.select_diff_and_get_text = diff_utils.select_diff_and_get_text
 
 -- Git utils

@@ -49,7 +49,7 @@ function M.parse_diff_blocks(bufnr)
 end
 
 -- Apply a diff that's already in memory
-local function apply_diff_block(lines)
+function M.apply_diff_block(lines)
 	-- write the diff to a temp file
 	local patchfile = vim.fn.tempname() .. ".patch"
 	vim.fn.writefile(lines, patchfile)
@@ -94,7 +94,7 @@ local DiffPreviewer = previewers.new_buffer_previewer({
 -- Picker ------------------------------------------------------------
 ----------------------------------------------------------------------
 
-function M.select_diff_and_get_text(diff_lookup_fn)
+function M.select_diff_and_get_text(diff_lookup_fn, handle_diff_fn)
 	local bufnr = vim.api.nvim_get_current_buf()
 	local items = diff_lookup_fn(bufnr)
 
@@ -148,12 +148,17 @@ function M.select_diff_and_get_text(diff_lookup_fn)
 					if not selection then
 						return
 					end
+					local diff = selection.value.full
 
 					-- Close the picker
 					actions.close(prompt_bufnr)
 
 					-- Apply the diff
-					apply_diff_block(selection.value.full)
+					if handle_diff_fn then
+						handle_diff_fn(diff)
+					else
+						print("Here is the selected diff:\n\n" .. diff)
+					end
 
 					-- Jump to the diff block on the md file
 					vim.api.nvim_win_set_cursor(0, { selection.value.linenr, 0 })
