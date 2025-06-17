@@ -180,9 +180,9 @@ function M.select_diff_and_get_text(diff_lookup_fn, handle_diff_fn)
 			end,
 			layout_strategy = "horizontal",
 			layout_config = {
-				preview_width = 0.55,
+				preview_width = 0.70,
 				width = 0.9,
-				height = 0.8,
+				height = 0.9,
 			},
 		})
 		:find()
