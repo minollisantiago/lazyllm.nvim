@@ -48,6 +48,28 @@ function M.parse_diff_blocks(bufnr)
 	return diffs
 end
 
+-- Apply a diff that's already in memory
+local function apply_diff_block(lines)
+	-- write the diff to a temp file
+	local patchfile = vim.fn.tempname() .. ".patch"
+	vim.fn.writefile(lines, patchfile)
+
+	-- decide whether to call `git apply` or vanilla `patch`
+	local cmd, cmd_args
+	if vim.fn.isdirectory(".git") == 1 then -- inside a git repo
+		cmd, cmd_args = "git", { "apply", "--whitespace=nowarn", patchfile }
+	else
+		cmd, cmd_args = "patch", { "-p0", "-u", "-i", patchfile }
+	end
+
+	local output = vim.fn.system(vim.list_extend({ cmd }, cmd_args))
+	local ok = vim.v.shell_error == 0
+
+	local level = ok and vim.log.levels.INFO or vim.log.levels.ERROR
+	local msg = ok and ("Patch applied successfully ✔️\n" .. output) or ("Patch failed ❌\n" .. output)
+	vim.notify(msg, level)
+end
+
 ----------------------------------------------------------------------
 -- Previewer ---------------------------------------------------------
 ----------------------------------------------------------------------
@@ -117,18 +139,25 @@ function M.select_diff_and_get_text(diff_lookup_fn)
 					}
 				end,
 			}),
-			attach_mappings = function(_, map)
+			attach_mappings = function(prompt_bufnr, map)
 				local actions = require("telescope.actions")
 				local action_state = require("telescope.actions.state")
 
 				actions.select_default:replace(function()
 					local selection = action_state.get_selected_entry()
-					actions.close()
-					if selection then
-						-- jump to start of diff block in the markdown buffer
-						vim.api.nvim_win_set_cursor(0, { selection.value.linenr, 0 })
-						vim.cmd("normal! zz")
+					if not selection then
+						return
 					end
+
+					-- Close the picker
+					actions.close(prompt_bufnr)
+
+					-- Apply the diff
+					apply_diff_block(selection.value.full)
+
+					-- Jump to the diff block on the md file
+					vim.api.nvim_win_set_cursor(0, { selection.value.linenr, 0 })
+					vim.cmd("normal! zz")
 				end)
 
 				-- optional: open diff in a new split with <C‑s>
