@@ -26,11 +26,13 @@ function M.parse_diff_blocks(bufnr)
 				break
 			end
 		end
-		table.insert(diffs, {
-			filename = target,
-			linenr = start_ln,
-			full = vim.deepcopy(block),
-		})
+		if #block > 0 then
+			table.insert(diffs, {
+				filename = target,
+				linenr = start_ln,
+				full = vim.deepcopy(block),
+			})
+		end
 	end
 
 	for i, line in ipairs(lines) do
@@ -50,20 +52,13 @@ end
 -- Previewer ---------------------------------------------------------
 ----------------------------------------------------------------------
 
-local function diff_previewer(entry, _)
-	-- entry.value.full is an array of diff lines
-	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_option(buf, "filetype", "diff")
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, entry.value.full)
-	return buf
-end
-
 local DiffPreviewer = previewers.new_buffer_previewer({
 	title = "Diff",
 	define_preview = function(self, entry, _)
-		-- build / reuse buffer each time selection changes
-		local buf = diff_previewer(entry, self)
-		self.state.bufnr = buf
+		local buf = vim.api.nvim_create_buf(false, true)
+		vim.bo[buf].filetype = "diff"
+		vim.api.nvim_buf_set_lines(buf, 0, -1, false, entry.value.full)
+		self.state.bufnr = buf -- telescope will reuse / wipe
 	end,
 })
 
