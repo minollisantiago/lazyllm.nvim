@@ -66,6 +66,13 @@ local function wrap_file_content(file_path, file_text, wrap_tag, metadata)
 	return wrap.wrap_context_xml(wrap_tag, file_code_block, metadata)
 end
 
+local function default_chat_find_command()
+	if vim.fn.executable("rg") == 1 then
+		return { "rg", "--files", "--hidden", "--no-ignore", "--no-ignore-parent", "--glob", "*.md" }
+	end
+	return nil
+end
+
 local function pick_file_and_handle_text(opts)
 	if not opts.handle_file_fn or type(opts.handle_file_fn) ~= "function" then
 		vim.notify("No handler function provided for file selection.", vim.log.levels.ERROR, { title = "LazyLLM" })
@@ -75,6 +82,10 @@ local function pick_file_and_handle_text(opts)
 	builtin.find_files({
 		prompt_title = opts.prompt_title,
 		cwd = opts.cwd,
+		find_command = opts.find_command,
+		hidden = opts.hidden,
+		no_ignore = opts.no_ignore,
+		no_ignore_parent = opts.no_ignore_parent,
 		attach_mappings = function(prompt_bufnr)
 			actions.select_default:replace(function()
 				actions.close(prompt_bufnr)
@@ -122,11 +133,20 @@ function M.select_chat_file_and_get_text(handle_file_fn, wrap_tag, opts)
 		return
 	end
 
+	local find_command = opts.find_command or default_chat_find_command()
+	if not find_command and opts.require_markdown then
+		vim.notify("Markdown-only chat listing requires ripgrep (rg).", vim.log.levels.WARN, { title = "LazyLLM" })
+	end
+
 	pick_file_and_handle_text({
 		handle_file_fn = handle_file_fn,
 		wrap_tag = wrap_tag,
 		cwd = chat_dir,
 		prompt_title = opts.prompt_title or "Select Chat to Add to Context",
+		find_command = find_command,
+		hidden = opts.hidden ~= false,
+		no_ignore = opts.no_ignore ~= false,
+		no_ignore_parent = opts.no_ignore_parent ~= false,
 	})
 end
 
@@ -139,9 +159,18 @@ function M.select_chat_file_and_open(opts)
 		return
 	end
 
+	local find_command = opts.find_command or default_chat_find_command()
+	if not find_command and opts.require_markdown then
+		vim.notify("Markdown-only chat listing requires ripgrep (rg).", vim.log.levels.WARN, { title = "LazyLLM" })
+	end
+
 	builtin.find_files({
 		prompt_title = opts.prompt_title or "Open Chat Scratchpad",
 		cwd = chat_dir,
+		find_command = find_command,
+		hidden = opts.hidden ~= false,
+		no_ignore = opts.no_ignore ~= false,
+		no_ignore_parent = opts.no_ignore_parent ~= false,
 		attach_mappings = function(prompt_bufnr)
 			actions.select_default:replace(function()
 				actions.close(prompt_bufnr)

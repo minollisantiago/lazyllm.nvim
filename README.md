@@ -23,6 +23,7 @@ return {
     "nvim-lua/plenary.nvim",
     "nvim-telescope/telescope.nvim",
   },
+  -- Requires ripgrep (rg) for chat browsing filters
 
   config = function()
     local lazyllm = require("lazyllm")
@@ -146,7 +147,7 @@ return {
 
     -- Chat lookup: with telescope
 
-    -- + browse chat scratchpads and open them
+    -- + browse markdown chat scratchpads and open them
     local function Chat_history_lookup_open()
       lazyllm.select_chat_file_and_open({
         open_cmd = "edit",
