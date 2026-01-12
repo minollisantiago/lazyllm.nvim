@@ -162,7 +162,7 @@ return {
 
     local function Open_prompt_scratchpad()
       lazyllm.open_markdown_scratchpad({
-        filename = "llm_scratchpad.md",
+        filename = "llm_scratchpad",
         open_cmd = "edit",
       })
     end

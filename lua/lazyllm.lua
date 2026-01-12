@@ -33,15 +33,23 @@ M.list_commits = git_utils.list_commits
 
 function M.open_markdown_scratchpad(opts)
 	opts = opts or {}
-	local dir = opts.dir or vim.fn.getcwd()
-	if vim.fn.isdirectory(dir) == 0 then
-		vim.notify("Invalid scratchpad directory: " .. dir, vim.log.levels.ERROR, { title = "LazyLLM" })
+	local root_dir = opts.dir or vim.fn.getcwd()
+	if vim.fn.isdirectory(root_dir) == 0 then
+		vim.notify("Invalid scratchpad directory: " .. root_dir, vim.log.levels.ERROR, { title = "LazyLLM" })
 		return
 	end
 
-	local filename = opts.filename or "llm_scratchpad.md"
+	local scratchpad_dir = root_dir .. "/llm/chats"
+	if vim.fn.isdirectory(scratchpad_dir) == 0 then
+		vim.fn.mkdir(scratchpad_dir, "p")
+	end
+
+	local base_name = opts.filename or "llm_scratchpad"
+	base_name = base_name:gsub("%.md$", "")
+	local timestamp = os.date("%Y%m%d_%H%M%S")
+	local filename = string.format("%s_%s.md", base_name, timestamp)
 	local open_cmd = opts.open_cmd or "edit"
-	local full_path = vim.fn.fnamemodify(dir .. "/" .. filename, ":p")
+	local full_path = vim.fn.fnamemodify(scratchpad_dir .. "/" .. filename, ":p")
 
 	vim.cmd(string.format("%s %s", open_cmd, vim.fn.fnameescape(full_path)))
 
