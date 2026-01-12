@@ -160,6 +160,15 @@ return {
       lazyllm.list_commits(max_number_of_commits, lazyllm.format_commits_flat, lazyllm.write_string_at_cursor)
     end
 
+    local function Open_prompt_scratchpad()
+      lazyllm.open_markdown_scratchpad({
+        filename = "llm_scratchpad.md",
+        open_cmd = "edit",
+      })
+    end
+
+    vim.api.nvim_create_user_command("LazyLLMScratchpad", Open_prompt_scratchpad, {})
+
     -- Keymappings
     vim.keymap.set({ "n", "v" }, "<leader>pc", LLM_chat(default_provider), { desc = "LLM chat" })
     vim.keymap.set("n", "<leader>pl", Symbol_context_lookup_lsp_write_on_register, { desc = "Symbol lookup - reg" })
@@ -168,6 +177,7 @@ return {
     vim.keymap.set("n", "<leader>pd", Diff_lookup_test, { desc = "Diff explorer" })
     vim.keymap.set("n", "<leader>pgm", Get_commits_write_at_cursor_md, { desc = "Get commits at cursor - md" })
     vim.keymap.set("n", "<leader>pgf", Get_commits_write_at_cursor_flat, { desc = "Get commits at cursor - flat" })
+    vim.keymap.set("n", "<leader>ps", Open_prompt_scratchpad, { desc = "Open LLM scratchpad" })
   end,
 }
 ```

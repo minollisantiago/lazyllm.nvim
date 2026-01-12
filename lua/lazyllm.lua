@@ -31,6 +31,23 @@ M.format_commits_markdown = git_utils.format_commits_markdown
 M.format_commits_flat = git_utils.format_commits_flat
 M.list_commits = git_utils.list_commits
 
+function M.open_markdown_scratchpad(opts)
+	opts = opts or {}
+	local dir = opts.dir or vim.fn.getcwd()
+	if vim.fn.isdirectory(dir) == 0 then
+		vim.notify("Invalid scratchpad directory: " .. dir, vim.log.levels.ERROR, { title = "LazyLLM" })
+		return
+	end
+
+	local filename = opts.filename or "llm_scratchpad.md"
+	local open_cmd = opts.open_cmd or "edit"
+	local full_path = vim.fn.fnamemodify(dir .. "/" .. filename, ":p")
+
+	vim.cmd(string.format("%s %s", open_cmd, vim.fn.fnameescape(full_path)))
+
+	return full_path
+end
+
 local function get_api_key(name)
 	return os.getenv(name)
 end
