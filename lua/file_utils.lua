@@ -196,4 +196,20 @@ function M.select_chat_file_and_open(opts)
 	})
 end
 
+function M.search_chat_files(opts)
+	opts = opts or {}
+	local root_dir = opts.dir or vim.fn.getcwd()
+	local chat_dir = opts.chat_dir or (root_dir .. "/llm/chats")
+	if vim.fn.isdirectory(chat_dir) == 0 then
+		vim.notify("Chat directory not found: " .. chat_dir, vim.log.levels.WARN, { title = "LazyLLM" })
+		return
+	end
+
+	builtin.live_grep({
+		prompt_title = opts.prompt_title or "Search Chat Files",
+		cwd = chat_dir,
+		glob_pattern = opts.glob_pattern or "*.md",
+	})
+end
+
 return M

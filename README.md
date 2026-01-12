@@ -154,6 +154,11 @@ return {
       })
     end
 
+    -- + search within chat files (telescope live_grep)
+    local function Chat_history_search()
+      lazyllm.search_chat_files()
+    end
+
     -- Diff lookup: with telescope
 
     -- + explore and patch/git apply diffs: (with telescope)
@@ -185,6 +190,7 @@ return {
     vim.keymap.set("n", "<leader>pp", Symbol_context_lookup_lsp_write_at_cursor, { desc = "Symbol lookup - cursor" })
     vim.keymap.set("n", "<leader>pf", File_context_lookup_write_at_cursor, { desc = "File lookup - cursor" })
     vim.keymap.set("n", "<leader>ph", Chat_history_lookup_open, { desc = "Chat lookup - open" })
+    vim.keymap.set("n", "<leader>ps", Chat_history_search, { desc = "Chat search" })
     vim.keymap.set("n", "<leader>pd", Diff_lookup_test, { desc = "Diff explorer" })
     vim.keymap.set("n", "<leader>pgm", Get_commits_write_at_cursor_md, { desc = "Get commits at cursor - md" })
     vim.keymap.set("n", "<leader>pgf", Get_commits_write_at_cursor_flat, { desc = "Get commits at cursor - flat" })
