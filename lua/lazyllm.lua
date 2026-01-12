@@ -18,6 +18,8 @@ M.select_symbol_and_get_text = symbols.select_symbol_and_get_text
 -- File lookup utils
 local file_utils = require("file_utils")
 M.select_file_and_get_text = file_utils.select_file_and_get_text
+M.select_chat_file_and_get_text = file_utils.select_chat_file_and_get_text
+M.select_chat_file_and_open = file_utils.select_chat_file_and_open
 
 -- Diff utils
 local diff_utils = require("diff_utils")

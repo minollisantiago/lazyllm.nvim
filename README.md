@@ -144,6 +144,15 @@ return {
       lazyllm.select_file_and_get_text(lazyllm.write_string_at_cursor, tags["context"])
     end
 
+    -- Chat lookup: with telescope
+
+    -- + browse chat scratchpads and open them
+    local function Chat_history_lookup_open()
+      lazyllm.select_chat_file_and_open({
+        open_cmd = "edit",
+      })
+    end
+
     -- Diff lookup: with telescope
 
     -- + explore and patch/git apply diffs: (with telescope)
@@ -174,6 +183,7 @@ return {
     vim.keymap.set("n", "<leader>pl", Symbol_context_lookup_lsp_write_on_register, { desc = "Symbol lookup - reg" })
     vim.keymap.set("n", "<leader>pp", Symbol_context_lookup_lsp_write_at_cursor, { desc = "Symbol lookup - cursor" })
     vim.keymap.set("n", "<leader>pf", File_context_lookup_write_at_cursor, { desc = "File lookup - cursor" })
+    vim.keymap.set("n", "<leader>ph", Chat_history_lookup_open, { desc = "Chat lookup - open" })
     vim.keymap.set("n", "<leader>pd", Diff_lookup_test, { desc = "Diff explorer" })
     vim.keymap.set("n", "<leader>pgm", Get_commits_write_at_cursor_md, { desc = "Get commits at cursor - md" })
     vim.keymap.set("n", "<leader>pgf", Get_commits_write_at_cursor_flat, { desc = "Get commits at cursor - flat" })
