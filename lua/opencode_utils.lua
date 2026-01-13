@@ -198,7 +198,10 @@ local function find_server_inside_nvim_cwd()
 			normalized_nvim_cwd = nvim_cwd:gsub("/", "\\")
 		end
 
-		if normalized_server_cwd:find(normalized_nvim_cwd, 1, true) == 1 then
+		local server_inside_nvim = normalized_server_cwd:find(normalized_nvim_cwd, 1, true) == 1
+		local nvim_inside_server = normalized_nvim_cwd:find(normalized_server_cwd, 1, true) == 1
+
+		if server_inside_nvim or nvim_inside_server then
 			found_server = server
 			if not is_windows() and is_descendant_of_neovim(server.pid) then
 				break
@@ -219,6 +222,8 @@ local function call(port, path, method, body)
 	local args = {
 		"curl",
 		"-s",
+		"-S",
+		"-f",
 		"--connect-timeout",
 		"1",
 		"-X",
@@ -239,13 +244,23 @@ local function call(port, path, method, body)
 	end
 end
 
-function M.get_port()
+function M.get_port(opts)
+	opts = opts or {}
+	if opts.port then
+		return opts.port
+	end
+
+	local env_port = tonumber(os.getenv("OPENCODE_PORT"))
+	if env_port then
+		return env_port
+	end
+
 	return find_server_inside_nvim_cwd().port
 end
 
 function M.append_prompt(prompt, opts)
 	opts = opts or {}
-	local ok, port = pcall(M.get_port)
+	local ok, port = pcall(M.get_port, opts)
 	if not ok then
 		vim.notify(port, vim.log.levels.ERROR, { title = "LazyLLM" })
 		return false
