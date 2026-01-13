@@ -195,6 +195,11 @@ return {
     vim.keymap.set("n", "<leader>pgm", Get_commits_write_at_cursor_md, { desc = "Get commits at cursor - md" })
     vim.keymap.set("n", "<leader>pgf", Get_commits_write_at_cursor_flat, { desc = "Get commits at cursor - flat" })
     vim.keymap.set("n", "<leader>ps", Open_prompt_scratchpad, { desc = "Open LLM scratchpad" })
+    vim.keymap.set({ "n", "v" }, "<leader>po", function()
+      lazyllm.send_prompt_to_opencode()
+    end, { desc = "Send prompt to opencode" })
   end,
 }
 ```
+
+You can also run `:LazyLLMOpencodePrompt` to append the prompt to the current opencode TUI input.

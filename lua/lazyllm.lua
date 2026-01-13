@@ -34,6 +34,9 @@ M.format_commits_markdown = git_utils.format_commits_markdown
 M.format_commits_flat = git_utils.format_commits_flat
 M.list_commits = git_utils.list_commits
 
+-- Opencode utils
+local opencode_utils = require("opencode_utils")
+
 function M.open_markdown_scratchpad(opts)
 	opts = opts or {}
 	local root_dir = opts.dir or vim.fn.getcwd()
@@ -58,6 +61,21 @@ function M.open_markdown_scratchpad(opts)
 
 	return full_path
 end
+
+function M.send_prompt_to_opencode(opts)
+	opts = opts or {}
+	local prompt = opts.prompt or M.get_prompt(opts)
+	if not prompt or prompt == "" then
+		vim.notify("No prompt to send", vim.log.levels.WARN, { title = "LazyLLM" })
+		return false
+	end
+
+	return opencode_utils.append_prompt(prompt, opts)
+end
+
+vim.api.nvim_create_user_command("LazyLLMOpencodePrompt", function()
+	M.send_prompt_to_opencode({})
+end, { desc = "Send prompt to opencode" })
 
 local function get_api_key(name)
 	return os.getenv(name)
