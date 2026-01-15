@@ -64,7 +64,21 @@ end
 
 function M.send_prompt_to_opencode(opts)
 	opts = opts or {}
-	local prompt = opts.prompt or M.get_prompt(opts)
+	local mode = vim.fn.mode()
+	local is_visual = mode == "v" or mode == "V" or mode == "\22"
+	local prompt = opts.prompt
+
+	if not prompt and (opts.selection_only or is_visual) then
+		local visual_lines = prompts.get_visual_selection()
+		if visual_lines and #visual_lines > 0 then
+			prompt = table.concat(visual_lines, "\n")
+		end
+	end
+
+	if not prompt and not opts.selection_only then
+		prompt = M.get_prompt(opts)
+	end
+
 	if not prompt or prompt == "" then
 		vim.notify("No prompt to send", vim.log.levels.WARN, { title = "LazyLLM" })
 		return false

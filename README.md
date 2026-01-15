@@ -202,4 +202,6 @@ return {
 }
 ```
 
+In visual mode, `send_prompt_to_opencode` sends only the selection. You can force selection-only behavior with `lazyllm.send_prompt_to_opencode({ selection_only = true })`.
+
 You can also run `:LazyLLMOpencodePrompt` to append the prompt to the current opencode TUI input.
