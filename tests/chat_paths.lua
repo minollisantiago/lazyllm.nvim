@@ -91,6 +91,8 @@ for _, root in ipairs({ "/project", "/another" }) do
 	lazyllm.search_chat_files({ dir = root })
 	assert(calls.grep.cwd == root .. "/.agents/lazyllm")
 	assert(calls.grep.glob_pattern == "*.md")
+	local grep_args = calls.grep.additional_args()
+	assert(table.concat(grep_args, " ") == "--hidden --no-ignore --no-ignore-parent")
 end
 
 directories["/custom/chats"] = true

@@ -209,6 +209,9 @@ function M.search_chat_files(opts)
 		prompt_title = opts.prompt_title or "Search Chat Files",
 		cwd = chat_dir,
 		glob_pattern = opts.glob_pattern or "*.md",
+		additional_args = function()
+			return { "--hidden", "--no-ignore", "--no-ignore-parent" }
+		end,
 	})
 end
 

@@ -14,6 +14,14 @@ the current working directory (or `opts.dir`). Chat browsing, context selection,
 and search use the same `.agents/lazyllm/` directory. Browsing and search still
 accept `opts.chat_dir` to override it.
 
+Chat mappings: `<leader>ps` creates a scratchpad, `<leader>p<leader>` browses
+chats, and `<leader>p<leader><leader>` searches their contents (including
+hidden/gitignored chats). Other mappings keep their existing behavior.
+
+When developing locally, add `dir = "/absolute/path/to/lazyllm.nvim"` to the
+Lazy plugin spec so these mappings load your checkout rather than an older
+installed copy. Restart Neovim after changing the plugin spec.
+
 Existing `llm/chats/` folders are not moved automatically. To retain access to
 old chats with the new defaults, move their contents into `.agents/lazyllm/`
 after reviewing the destination for filename conflicts. Leave unrelated files
@@ -201,8 +209,8 @@ return {
     vim.keymap.set("n", "<leader>pl", Symbol_context_lookup_lsp_write_on_register, { desc = "Symbol lookup - reg" })
     vim.keymap.set("n", "<leader>pp", Symbol_context_lookup_lsp_write_at_cursor, { desc = "Symbol lookup - cursor" })
     vim.keymap.set("n", "<leader>pf", File_context_lookup_write_at_cursor, { desc = "File lookup - cursor" })
-    vim.keymap.set("n", "<leader>ph", Chat_history_lookup_open, { desc = "Chat lookup - open" })
-    vim.keymap.set("n", "<leader>ps", Chat_history_search, { desc = "Chat search" })
+    vim.keymap.set("n", "<leader>p<leader>", Chat_history_lookup_open, { desc = "Chat lookup - open" })
+    vim.keymap.set("n", "<leader>p<leader><leader>", Chat_history_search, { desc = "Chat search" })
     vim.keymap.set("n", "<leader>pd", Diff_lookup_test, { desc = "Diff explorer" })
     vim.keymap.set("n", "<leader>pgm", Get_commits_write_at_cursor_md, { desc = "Get commits at cursor - md" })
     vim.keymap.set("n", "<leader>pgf", Get_commits_write_at_cursor_flat, { desc = "Get commits at cursor - flat" })
