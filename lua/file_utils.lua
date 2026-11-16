@@ -127,7 +127,7 @@ end
 function M.select_chat_file_and_get_text(handle_file_fn, wrap_tag, opts)
 	opts = opts or {}
 	local root_dir = opts.dir or vim.fn.getcwd()
-	local chat_dir = opts.chat_dir or (root_dir .. "/llm/chats")
+	local chat_dir = opts.chat_dir or (root_dir .. "/.agents/lazyllm")
 	if vim.fn.isdirectory(chat_dir) == 0 then
 		vim.notify("Chat directory not found: " .. chat_dir, vim.log.levels.WARN, { title = "LazyLLM" })
 		return
@@ -153,7 +153,7 @@ end
 function M.select_chat_file_and_open(opts)
 	opts = opts or {}
 	local root_dir = opts.dir or vim.fn.getcwd()
-	local chat_dir = opts.chat_dir or (root_dir .. "/llm/chats")
+	local chat_dir = opts.chat_dir or (root_dir .. "/.agents/lazyllm")
 	if vim.fn.isdirectory(chat_dir) == 0 then
 		vim.notify("Chat directory not found: " .. chat_dir, vim.log.levels.WARN, { title = "LazyLLM" })
 		return
@@ -199,7 +199,7 @@ end
 function M.search_chat_files(opts)
 	opts = opts or {}
 	local root_dir = opts.dir or vim.fn.getcwd()
-	local chat_dir = opts.chat_dir or (root_dir .. "/llm/chats")
+	local chat_dir = opts.chat_dir or (root_dir .. "/.agents/lazyllm")
 	if vim.fn.isdirectory(chat_dir) == 0 then
 		vim.notify("Chat directory not found: " .. chat_dir, vim.log.levels.WARN, { title = "LazyLLM" })
 		return

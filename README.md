@@ -7,6 +7,18 @@ https://github.com/user-attachments/assets/2b83319f-704d-479c-b496-3c8836ee72c4
 > [!NOTE]
 > Ive extended the scripts to include Gemini and symbol lookup with telescope. The idea is to be able to quickly find and paste symbols to the chat for more context.
 
+### Chat storage
+
+Scratchpads are created as `.agents/lazyllm/<filename>_<timestamp>.md` relative to
+the current working directory (or `opts.dir`). Chat browsing, context selection,
+and search use the same `.agents/lazyllm/` directory. Browsing and search still
+accept `opts.chat_dir` to override it.
+
+Existing `llm/chats/` folders are not moved automatically. To retain access to
+old chats with the new defaults, move their contents into `.agents/lazyllm/`
+after reviewing the destination for filename conflicts. Leave unrelated files
+in `llm/` untouched.
+
 ### Lazy config
 Add your API keys to your env, here is an example with fish:
 ```fish

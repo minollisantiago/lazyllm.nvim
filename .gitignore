@@ -1,0 +1,2 @@
+# Local LazyLLM chats (including nested project workspaces)
+**/.agents/lazyllm/**/*.md

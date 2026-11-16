@@ -45,7 +45,7 @@ function M.open_markdown_scratchpad(opts)
 		return
 	end
 
-	local scratchpad_dir = root_dir .. "/llm/chats"
+	local scratchpad_dir = root_dir .. "/.agents/lazyllm"
 	if vim.fn.isdirectory(scratchpad_dir) == 0 then
 		vim.fn.mkdir(scratchpad_dir, "p")
 	end
